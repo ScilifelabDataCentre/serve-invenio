@@ -1,0 +1,77 @@
+name: Release Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Chart.yaml'
+      - 'values.yaml'
+      - 'templates/**'
+      - '.github/workflows/release.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3.5
+        with:
+          version: 3.13.0
+
+      - name: Extract Chart Version
+        id: chart
+        run: |
+          version=$(yq e '.version' Chart.yaml)
+          echo "version=${version}" >> $GITHUB_OUTPUT
+          echo "Chart version: ${version}"
+
+      - name: Package Chart
+        run: |
+          helm package . --version ${{ steps.chart.outputs.version }}
+          mkdir -p packages
+          mv *.tgz packages/
+          ls -la packages/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: packages/*.tgz
+          tag_name: v${{ steps.chart.outputs.version }}
+          name: Release v${{ steps.chart.outputs.version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Chart to GHCR
+        run: |
+          CHART_NAME=$(yq e '.name' Chart.yaml)
+          CHART_VERSION=${{ steps.chart.outputs.version }}
+          
+          # Push as OCI artifact to GHCR
+          helm push packages/${CHART_NAME}-${CHART_VERSION}.tgz \
+            oci://ghcr.io/scilifelabdatacentre
+          
+          echo "Chart pushed to: ghcr.io/scilifelabdatacentre/${CHART_NAME}:${CHART_VERSION}"

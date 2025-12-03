@@ -13,6 +13,21 @@ keywords:
   - multimedia-repository
 type: application
 version: 0.1.0
+# Add these annotations for OCI
+annotations:
+  artifacthub.io/changes: |
+    - Initial release
+    - Production-ready configuration
+    - External service integration
+  artifacthub.io/images: |
+    - name: invenio
+      image: ghcr.io/inveniosoftware/demo-inveniordm/demo-inveniordm:12.0.10
+  artifacthub.io/license: MIT
+  artifacthub.io/links: |
+    - name: InvenioRDM Documentation
+      url: https://inveniordm.docs.cern.ch/
+    - name: Source Code
+      url: https://github.com/ScilifelabDataCentre/serve-invenio
 maintainers:
   - name: Team Whale
     email: serve@scilifelab.se

@@ -1,0 +1,80 @@
+name: Lint and Test Chart
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3.5
+        with:
+          version: v3.13.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4.7.1
+        with:
+          python-version: 3.12
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.6.1
+
+      - name: Lint Chart
+        run: |
+          # Lint the main chart
+          helm lint .
+          
+          # Also lint with ct (chart-testing)
+          ct lint --chart-dirs . --validate-maintainers=false
+          
+          # Dry-run to check templates render
+          helm template test-release . \
+            --set invenio.hostname="test.example.com" \
+            --set postgresql.auth.password="test123" \
+            --set rabbitmqExternal.password="test456" \
+            --set flower.default_password="test789" \
+            --dry-run
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          node_image: kindest/node:v1.27.3
+
+      - name: Install Chart in Test Cluster
+        run: |
+          # Create namespace
+          kubectl create namespace test-invenio || true
+          
+          # Install dependencies first
+          kubectl apply -f examples/opensearch.yaml -n test-invenio --wait
+          kubectl apply -f examples/rabbit-mq.yaml -n test-invenio --wait
+          
+          # Create test secrets
+          kubectl create secret generic test-secrets -n test-invenio \
+            --from-literal=secret-key=test-key \
+            --from-literal=security-login-salt=test-salt \
+            --from-literal=csrf-secret-salt=test-csrf \
+            --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Install the chart with test values
+          helm upgrade --install test-invenio . -n test-invenio \
+            --set invenio.hostname="test.example.com" \
+            --set postgresql.auth.password="test123" \
+            --set rabbitmqExternal.password="test456" \
+            --set flower.default_password="test789" \
+            --set ingress.enabled=false \
+            --set persistence.enabled=false \
+            --wait --timeout 5m
+          
+          # Check if pods are running
+          kubectl get pods -n test-invenio
+          
+          # Clean up
+          helm uninstall test-invenio -n test-invenio || true
+          kubectl delete namespace test-invenio --wait || true
