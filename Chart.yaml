@@ -1,7 +1,7 @@
 apiVersion: v2
-name: invenio
+name: serve-invenio
 appVersion: 12.0.10
-description: Turn-key research data management platform.
+description: Turn-key research data management platform customized for ScilifeLab Serve.
 home: https://inveniosoftware.org/
 icon: https://inveniosoftware.org/static/img/logo-invenio-white.svg
 sources:
@@ -12,10 +12,10 @@ keywords:
   - multimedia-library
   - multimedia-repository
 type: application
-version: 0.9.0
+version: 0.1.0
 maintainers:
-  - name: CERN
-    email: info@inveniosoftware.org
+  - name: Team Whale
+    email: serve@scilifelab.se
 dependencies:
   - name: opensearch
     condition: opensearch.enabled
