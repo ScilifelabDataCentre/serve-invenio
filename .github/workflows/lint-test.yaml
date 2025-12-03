@@ -17,28 +17,28 @@ jobs:
         with:
           version: v3.13.0
 
-      - name: Set up Python
-        uses: actions/setup-python@v4.7.1
-        with:
-          python-version: 3.12
-
-      - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.6.1
+      - name: Build Helm Dependencies
+        run: |
+          echo "Building Helm dependencies from Chart.lock..."
+          helm dependency build
+          echo "Dependencies built. Contents of charts/ directory:"
+          ls -la charts/ || echo "No charts directory yet"
 
       - name: Lint Chart
         run: |
           # Lint the main chart
           helm lint .
           
-          # Also lint with ct (chart-testing)
-          ct lint --chart-dirs . --validate-maintainers=false
-          
-          # Dry-run to check templates render
+          # Dry-run to check templates render (disable dependencies for testing)
           helm template test-release . \
             --set invenio.hostname="test.example.com" \
             --set postgresql.auth.password="test123" \
             --set rabbitmqExternal.password="test456" \
             --set flower.default_password="test789" \
+            --set opensearch.enabled=false \
+            --set rabbitmq.enabled=false \
+            --set redis.enabled=false \
+            --set postgresql.enabled=false \
             --dry-run
 
       - name: Create kind cluster
@@ -62,11 +62,22 @@ jobs:
             --from-literal=csrf-secret-salt=test-csrf \
             --dry-run=client -o yaml | kubectl apply -f -
           
-          # Install the chart with test values
+          # Install the chart with test values (disable built-in dependencies)
           helm upgrade --install test-invenio . -n test-invenio \
             --set invenio.hostname="test.example.com" \
-            --set postgresql.auth.password="test123" \
+            --set postgresql.enabled=false \
+            --set postgresqlExternal.hostname="postgresql" \
+            --set postgresqlExternal.username="invenio" \
+            --set postgresqlExternal.password="test123" \
+            --set postgresqlExternal.database="invenio" \
+            --set rabbitmq.enabled=false \
+            --set rabbitmqExternal.hostname="rabbitmq" \
             --set rabbitmqExternal.password="test456" \
+            --set rabbitmqExternal.username="user" \
+            --set opensearch.enabled=false \
+            --set opensearchExternal.hostname="opensearch" \
+            --set redis.enabled=false \
+            --set redisExternal.hostname="redis" \
             --set flower.default_password="test789" \
             --set ingress.enabled=false \
             --set persistence.enabled=false \

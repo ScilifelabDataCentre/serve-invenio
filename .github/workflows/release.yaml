@@ -9,6 +9,7 @@ on:
       - 'values.yaml'
       - 'templates/**'
       - '.github/workflows/release.yaml'
+      - 'Chart.lock'
   workflow_dispatch:
 
 permissions:
@@ -34,6 +35,22 @@ jobs:
         with:
           version: 3.13.0
 
+      - name: Build Helm Dependencies
+        run: |
+          echo "Building Helm dependencies from Chart.lock..."
+          helm dependency build
+          echo "Verifying dependencies are downloaded:"
+          ls -la charts/ || echo "No charts directory found"
+          
+          # Check each dependency
+          for dep in opensearch postgresql rabbitmq redis; do
+            if [ -f "charts/${dep}-*.tgz" ]; then
+              echo "✓ ${dep} dependency found"
+            else
+              echo "✗ ${dep} dependency missing!"
+            fi
+          done
+
       - name: Extract Chart Version
         id: chart
         run: |
@@ -43,6 +60,7 @@ jobs:
 
       - name: Package Chart
         run: |
+          # Package with dependencies
           helm package . --version ${{ steps.chart.outputs.version }}
           mkdir -p packages
           mv *.tgz packages/
