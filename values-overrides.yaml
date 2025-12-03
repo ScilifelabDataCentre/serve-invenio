@@ -1,0 +1,187 @@
+# values-overrides.yaml
+global:
+  timezone: "Europe/Zurich"
+
+invenio:
+  hostname: "invenio.serve-dev.scilifelab.se"
+
+image:
+  registry: ghcr.io/inveniosoftware
+  repository: demo-inveniordm/demo-inveniordm
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# Disable built-in OpenSearch and use external configuration
+opensearch:
+  enabled: false
+
+# Configure external OpenSearch
+opensearchExternal:
+  hostname: "opensearch"
+  port: 9200
+
+# Disable built-in RabbitMQ and use external
+rabbitmq:
+  enabled: false
+
+# Configure external RabbitMQ
+rabbitmqExternal:
+  hostname: "rabbitmq"
+  amqpPort: 5672
+  managementPort: 15672
+  username: "user"
+  password: "mq_password"
+  protocol: "amqp"
+  vhost: "/"
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    username: "invenio"
+    password: "db_password"
+    database: "invenio"
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    seccompProfile:
+      type: "RuntimeDefault"
+  containerSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: "RuntimeDefault"
+
+# Flower configuration
+flower:
+  enabled: true
+  image: "mher/flower:2.0"
+  default_password: "flower_password"
+  secret_name: "flower-secrets"
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    seccompProfile:
+      type: "RuntimeDefault"
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: "RuntimeDefault"
+
+# Web configuration with adjusted probes
+web:
+  replicas: 1
+  resources: 
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # Adjust startup probe to be more lenient
+  startupProbe:
+    exec:
+      command:
+        - /bin/bash
+        - -c
+        - "uwsgi_curl -X HEAD -H 'Host: {{ .Values.invenio.hostname }}' $(hostname):5000 /ping"
+    initialDelaySeconds: 60
+    timeoutSeconds: 10
+    periodSeconds: 10
+    failureThreshold: 10
+  # Adjust readiness probe
+  readinessProbe:
+    exec:
+      command:
+        - /bin/bash
+        - -c
+        - "uwsgi_curl -X HEAD -H 'Host: {{ .Values.invenio.hostname }}' $(hostname):5000 /ping"
+    initialDelaySeconds: 30
+    timeoutSeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+
+# Worker configuration - with adjusted probes
+worker:
+  replicas: 1
+  concurrency: 2
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # Adjust liveness probe to be more lenient
+  livenessProbe:
+    exec:
+      command:
+        - /bin/bash
+        - -c
+        - "celery -A invenio_app.celery inspect ping -d celery@$(hostname)"
+    initialDelaySeconds: 120  # Wait longer for RabbitMQ to be ready
+    timeoutSeconds: 30
+    periodSeconds: 30
+    failureThreshold: 5
+
+workerBeat:
+  # Adjust liveness probe for worker-beat
+  livenessProbe:
+    exec:
+      command:
+        - /bin/bash
+        - -c
+        - "celery -A invenio_app.celery inspect ping"
+    initialDelaySeconds: 120  # Wait longer for RabbitMQ to be ready
+    timeoutSeconds: 30
+    periodSeconds: 30
+    failureThreshold: 5
+
+# Persistence configuration
+persistence:
+  enabled: true
+  access_mode: ReadWriteMany
+  size: 10Gi
+  storage_class: "ontap-nas"
+
+# Ingress configuration
+ingress:
+  enabled: true
+  class: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tlsSecretNameOverride: "invenio-tls"
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    seccompProfile:
+      type: "RuntimeDefault"
+  containerSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: "RuntimeDefault"

@@ -1,0 +1,277 @@
+# =============================================
+# Helm Chart Specific Ignored Files
+# =============================================
+
+# Helm package files
+*.tgz
+.chart/
+
+# Dependency directories (if using helm dep up)
+charts/*.tgz
+tmpcharts/
+
+# Helm local repository index
+index.yaml
+
+# =============================================
+# Kubernetes/Helm Generated Files
+# =============================================
+
+# Rendered templates
+templates/*.yaml
+!templates/*.yaml.tpl
+!templates/*.yaml
+
+# Generated secrets
+*-secrets.yaml
+*-secret.yaml
+
+# Kustomize files
+kustomization.yaml
+kustomize/
+
+# =============================================
+# Development & IDE Files
+# =============================================
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# =============================================
+# Environment & Configuration Files
+# =============================================
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Kubernetes configs
+.kube/
+kubeconfig*
+config
+
+# Terraform (if using)
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# =============================================
+# Test & Build Artifacts
+# =============================================
+
+# Test output
+test/
+coverage/
+*.cover
+*.pyc
+__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# Build artifacts
+dist/
+build/
+out/
+target/
+
+# =============================================
+# Documentation Builds
+# =============================================
+
+# MkDocs
+site/
+
+# Sphinx
+_build/
+
+# =============================================
+# Temporary Files
+# =============================================
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Crash logs
+crash.log
+*.log
+
+# =============================================
+# Secret Files (CRITICAL - Never commit these!)
+# =============================================
+
+# Secrets - NEVER COMMIT THESE!
+*-secrets.yaml
+secrets.yaml
+values-secret.yaml
+*-passwords.yaml
+*-credentials.yaml
+
+# Certificate files
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
+*.p12
+
+# =============================================
+# Package Manager Files
+# =============================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Python
+venv/
+env/
+ENV/
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Go
+vendor/
+*.test
+*.out
+
+# =============================================
+# CI/CD Artifacts
+# =============================================
+
+# GitHub Actions
+.actions/
+.github/workflows/*.yaml.bak
+
+# CircleCI
+.circleci/config.yml.bak
+
+# Jenkins
+jenkins/
+builds/
+
+# =============================================
+# Log Files
+# =============================================
+
+# Logs
+logs/
+*.log
+
+# =============================================
+# Backup Files
+# =============================================
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# =============================================
+# Compression Files
+# =============================================
+
+# Compressed files
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# =============================================
+# Shell History
+# =============================================
+
+# Shell history
+.bash_history
+.zsh_history
+.history
+
+# =============================================
+# Custom Patterns
+# =============================================
+
+# Add any custom patterns specific to your workflow below
+# Example: helm-docs output if you generate docs
+chart-docs/
+
+# =============================================
+# Platform Specific
+# =============================================
+
+# Windows
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Dump file
+*.stackdump
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# Linux
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# =============================================
+# Special Cases - Files that should NOT be ignored
+# =============================================
+# These are exceptions to the rules above
+
+# !Chart.yaml
+# !values.yaml
+# !values-overrides.yaml
+# !templates/
+# !charts/*/Chart.yaml
+# !charts/*/values.yaml
+# !examples/
+# !scripts/
+# !.github/workflows/
+# !README.md
+# !LICENSE
