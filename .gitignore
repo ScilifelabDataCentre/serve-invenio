@@ -200,7 +200,7 @@ logs/
 
 # Compressed files
 *.zip
-*.tar.gz
+#*.tar.gz
 #*.tgz
 *.rar
 *.7z
