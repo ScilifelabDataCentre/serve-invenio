@@ -7,7 +7,7 @@
 .chart/
 
 # Dependency directories (if using helm dep up)
-charts/*.tgz
+#charts/*.tgz
 tmpcharts/
 
 # Helm local repository index
@@ -200,8 +200,8 @@ logs/
 
 # Compressed files
 *.zip
-#*.tar.gz
-#*.tgz
+*.tar.gz
+*.tgz
 *.rar
 *.7z
 
