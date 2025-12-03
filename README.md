@@ -4,12 +4,12 @@ A production-ready Helm chart for deploying InvenioRDM with external dependencie
 
 ## Features
 
-- 🚀 Production-ready configuration with security hardening
-- 🔒 External service integration (OpenSearch, RabbitMQ, PostgreSQL)
-- 📦 Versioned and reproducible deployments
-- 🔐 Security contexts with non-root users
-- 📊 Monitoring with probes and health checks
-- 🛡️ Ingress with TLS support via cert-manager
+- Production-ready configuration with security hardening
+- External service integration (OpenSearch, RabbitMQ, PostgreSQL)
+- Versioned and reproducible deployments
+- Security contexts with non-root users
+- Monitoring with probes and health checks
+- Ingress with TLS support via cert-manager
 
 ## Quick Start
 
