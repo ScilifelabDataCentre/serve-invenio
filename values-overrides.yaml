@@ -1,6 +1,6 @@
 # values-overrides.yaml
 global:
-  timezone: "Europe/Zurich"
+  timezone: "Europe/Stockholm"
 
 invenio:
   hostname: "invenio.serve-dev.scilifelab.se"
