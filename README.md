@@ -23,11 +23,12 @@ A production-ready Helm chart for deploying InvenioRDM with external dependencie
 
 ### Installation
 
-1. Add the chart repository:
 ```bash
+# Add the chart repository:
 helm repo add serve-invenio https://your-organization.github.io/serve-invenio/
 helm repo update
 
+# Create a separate namespace
 kubectl create namespace invenio
 
 # Deploy external services
@@ -39,7 +40,7 @@ kubectl apply -f examples/rabbit-mq.yaml -n invenio
 helm install invenio serve-invenio/serve-invenio -n invenio \
   --values values-overrides.yaml
 
-# Polulate Database
+# Populate Database
 kubectl cp scripts/wipe_recreate.sh invenio/invenio-web-xxxx:/tmp/wipe_recreate.sh -c web
 kubectl exec -n invenio invenio-web-invenio-web-xxxx -c web -- chmod +x /tmp/wipe_recreate.sh
 echo "y" | kubectl exec -n invenio invenio-web-xxxx -c web -i -- /tmp/wipe_recreate.sh
