@@ -24,8 +24,9 @@ A production-ready Helm chart for deploying InvenioRDM with external dependencie
 ### Installation
 
 ```bash
-# Add the chart repository:
-helm repo add serve-invenio https://your-organization.github.io/serve-invenio/
+# Update the helm repository:
+git clone https://github.com/ScilifelabDataCentre/serve-invenio.git
+cd serve-invenio
 helm repo update
 
 # Create a separate namespace
@@ -37,16 +38,17 @@ kubectl apply -f examples/rabbit-mq.yaml -n invenio
 
 
 # Installation with custom values
-helm install invenio serve-invenio/serve-invenio -n invenio \
+helm upgrade --install invenio ./ -n invenio \
   --values values-overrides.yaml
 
-# Populate Database
+# Populate Database (make sure to locate the correct invenio-web pod)
 kubectl cp scripts/wipe_recreate.sh invenio/invenio-web-xxxx:/tmp/wipe_recreate.sh -c web
 kubectl exec -n invenio invenio-web-invenio-web-xxxx -c web -- chmod +x /tmp/wipe_recreate.sh
 echo "y" | kubectl exec -n invenio invenio-web-xxxx -c web -i -- /tmp/wipe_recreate.sh
 
 # create an admin user
 kubectl -n invenio exec -it invenio-web-xxxx -- /bin/bash
+# run the following commands inside the pod
 invenio users create admin@scilifelab.se --password=123456 --active
 invenio roles add admin@scilifelab.se admin
 
