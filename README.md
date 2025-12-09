@@ -49,9 +49,10 @@ kubectl apply -f examples/rabbit-mq.yaml -n invenio
 helm upgrade --install invenio ./ -n invenio \
   --values values-overrides.yaml
 
-# Populate Database (make sure to locate the correct invenio-web pod, 
+# Populate Database
+# make sure to locate the correct invenio-web pod, 
 # for example using,
-# k -n invenio get po)
+# k -n invenio get po
 kubectl cp scripts/wipe_recreate.sh invenio/invenio-serve-invenio-web-xxxxxxxxxx-xxxxx:/tmp/wipe_recreate.sh -c web
 kubectl exec -n invenio invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -c web -- chmod +x /tmp/wipe_recreate.sh
 echo "y" | kubectl exec -n invenio invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -c web -i -- /tmp/wipe_recreate.sh
