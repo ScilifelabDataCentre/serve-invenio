@@ -252,9 +252,6 @@ jobs:
             -f test-values.yaml \
             --wait --timeout 5m
           
-          # Check if pods are created
-          echo "Checking pods..."
-          kubectl get pods -n test-invenio -o wide
           
           # Check deployment status
           echo "Checking deployments..."
@@ -262,7 +259,7 @@ jobs:
           
           # Check if web pods are running (they may fail due to missing external dependencies, but that's OK for test)
           echo "Checking pod status..."
-          kubectl get pods -n test-invenio -l app.kubernetes.io/name=invenio
+          kubectl get pods -n test-invenio
           
           # Clean up
           helm uninstall test-invenio -n test-invenio || true
