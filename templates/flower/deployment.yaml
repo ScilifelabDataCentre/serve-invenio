@@ -58,10 +58,17 @@ spec:
             - name: TZ
               value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
             - name: FLOWER_BASIC_AUTH_CREDENTIALS
+{{- if .Values.global.bitwarden.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.bitwarden.secretName | default "invenio-bitwarden-secrets" }}
+                  key: FLOWER_BASIC_AUTH_CREDENTIALS
+{{- else }}
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.flower.secret_name }}
                   key: FLOWER_BASIC_AUTH_CREDENTIALS
+{{- end }}
             {{- include "invenio.config.queue" . | nindent 12 }}
           {{- with .Values.flower.extraEnvFrom }}
           envFrom:
