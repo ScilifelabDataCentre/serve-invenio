@@ -62,25 +62,47 @@ jobs:
             --from-literal=csrf-secret-salt=test-csrf \
             --dry-run=client -o yaml | kubectl apply -f -
           
-          # Install the chart with test values (disable built-in dependencies)
+          # Create a values file for testing
+          cat > test-values.yaml <<EOF
+          invenio:
+            hostname: "test.example.com"
+          postgresql:
+            enabled: false
+          postgresqlExternal:
+            hostname: "postgresql"
+            username: "invenio"
+            password: "test123"
+            database: "invenio"
+          rabbitmq:
+            enabled: false
+          rabbitmqExternal:
+            hostname: "rabbitmq"
+            password: "test456"
+            username: "user"
+            amqpPort: 5672
+            managementPort: 15672
+            protocol: "amqp"
+            vhost: "/"
+          opensearch:
+            enabled: false
+          externalOpensearch:
+            hostname: "opensearch"
+            port: 9200
+          redis:
+            enabled: false
+          redisExternal:
+            hostname: "redis"
+          flower:
+            default_password: "test789"
+          ingress:
+            enabled: false
+          persistence:
+            enabled: false
+          EOF
+          
+          # Install the chart with test values
           helm upgrade --install test-invenio . -n test-invenio \
-            --set invenio.hostname="test.example.com" \
-            --set postgresql.enabled=false \
-            --set postgresqlExternal.hostname="postgresql" \
-            --set postgresqlExternal.username="invenio" \
-            --set postgresqlExternal.password="test123" \
-            --set postgresqlExternal.database="invenio" \
-            --set rabbitmq.enabled=false \
-            --set rabbitmqExternal.hostname="rabbitmq" \
-            --set rabbitmqExternal.password="test456" \
-            --set rabbitmqExternal.username="user" \
-            --set opensearch.enabled=false \
-            --set opensearchExternal.hostname="opensearch" \
-            --set redis.enabled=false \
-            --set redisExternal.hostname="redis" \
-            --set flower.default_password="test789" \
-            --set ingress.enabled=false \
-            --set persistence.enabled=false \
+            -f test-values.yaml \
             --wait --timeout 5m
           
           # Check if pods are running
