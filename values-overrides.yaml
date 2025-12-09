@@ -7,7 +7,7 @@ global:
     secretName: "invenio-bitwarden-secrets"
 
 invenio:
-  hostname: "testinvenio.serve-dev.scilifelab.se"
+  hostname: "invenio.serve-dev.scilifelab.se"
   existingSecret: "{{ .Values.global.existingSecret }}"
 
 image:
