@@ -31,6 +31,10 @@ spec:
       labels:
         app: flower-management
     spec:
+      securityContext:
+        {{- with .Values.flower.podSecurityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       containers:
         - name: flower-management
           image: {{ required "Missing .Values.flower.image" .Values.flower.image }}
@@ -46,14 +50,18 @@ spec:
               ]
           ports:
             - containerPort: 5555
-          livenessProbe: {{- tpl (.Values.flower.livenessProbe | toYaml) $ | nindent 12 }}
-          readinessProbe: {{- tpl (.Values.flower.readinessProbe | toYaml) $ | nindent 12 }}
-          startupProbe: {{- tpl (.Values.flower.startupProbe | toYaml) $ | nindent 12 }}
           securityContext:
+            {{- with .Values.flower.securityContext }}
+            {{- toYaml . | nindent 12 }}
+            {{- else }}
             allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - ALL
+            {{- end }}
+          livenessProbe: {{- tpl (.Values.flower.livenessProbe | toYaml) $ | nindent 12 }}
+          readinessProbe: {{- tpl (.Values.flower.readinessProbe | toYaml) $ | nindent 12 }}
+          startupProbe: {{- tpl (.Values.flower.startupProbe | toYaml) $ | nindent 12 }}
           env:
             - name: TZ
               value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
@@ -80,10 +88,6 @@ spec:
               mountPath: /var/celery
             - name: flower-config-volume
               mountPath: /var/flower
-      securityContext:
-        {{- with .Values.flower.securityContext }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
       {{- with .Values.flower.nodeSelector }}
       nodeSelector:
         {{- tpl (toYaml .) $ | nindent 8 -}}

@@ -190,20 +190,6 @@ jobs:
             image: "mher/flower:2.0"
             secret_name: "test-secrets"
             existing_secret: true
-            podSecurityContext:
-              runAsNonRoot: true
-              runAsUser: 1000
-              runAsGroup: 1000
-              seccompProfile:
-                type: "RuntimeDefault"
-            securityContext:
-              runAsNonRoot: true
-              runAsUser: 1000
-              runAsGroup: 1000
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop:
-                  - ALL
           
           web:
             replicas: 1
@@ -214,16 +200,6 @@ jobs:
               limits:
                 cpu: 200m
                 memory: 256Mi
-            startupProbe:
-              exec:
-                command:
-                  - /bin/bash
-                  - -c
-                  - "uwsgi_curl -X HEAD -H 'Host: test.example.com' \$(hostname):5000 /ping"
-              initialDelaySeconds: 30
-              timeoutSeconds: 5
-              periodSeconds: 10
-              failureThreshold: 3
           
           worker:
             replicas: 1
