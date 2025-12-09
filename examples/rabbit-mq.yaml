@@ -26,9 +26,15 @@ spec:
         - name: RABBITMQ_DEFAULT_USER
           value: "user"
         - name: RABBITMQ_DEFAULT_PASS
-          value: "mq_password"
+          valueFrom:
+            secretKeyRef:
+              name: invenio-cluster-secrets
+              key: rabbitmq-password
         - name: RABBITMQ_ERLANG_COOKIE
-          value: "secret-cookie"
+          valueFrom:
+            secretKeyRef:
+              name: invenio-cluster-secrets
+              key: rabbitmq-erlang-cookie
         ports:
         - containerPort: 5672
           name: amqp

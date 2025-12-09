@@ -67,7 +67,7 @@ exit
 
 # Delete it completely
 k -n invenio delete pvc --all
-kubectl delete secret invenio-secrets -n invenio
+kubectl delete secret invenio-cluster-secrets -n invenio
 helm uninstall invenio -n invenio --ignore-not-found
 
 # If you want to wipe out everything at once
