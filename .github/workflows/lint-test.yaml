@@ -52,8 +52,8 @@ jobs:
           kubectl create namespace test-invenio || true
           
           # Install dependencies first
-          kubectl apply -f examples/opensearch.yaml -n test-invenio --wait
-          kubectl apply -f examples/rabbit-mq.yaml -n test-invenio --wait
+          kubectl apply -f externals/opensearch.yaml -n test-invenio --wait
+          kubectl apply -f externals/rabbit-mq.yaml -n test-invenio --wait
           
           # Create test secrets
           kubectl create secret generic test-secrets -n test-invenio \

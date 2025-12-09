@@ -12,7 +12,7 @@ keywords:
   - multimedia-library
   - multimedia-repository
 type: application
-version: 0.1.0
+version: 1.0.0
 # Add these annotations for OCI
 annotations:
   artifacthub.io/changes: |
