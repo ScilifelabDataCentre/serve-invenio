@@ -6,6 +6,14 @@
 global:
   ## @param global.timezone Timezone
   timezone: "Europe/Zurich"
+  ## @param global.existingSecret Existing secret name for application secrets
+  existingSecret: ""
+  ## @param global.bitwarden Bitwarden configuration
+  bitwarden:
+    ## @param global.bitwarden.enabled Enable Bitwarden for secret management
+    enabled: false
+    ## @param global.bitwarden.secretName Secret name for Bitwarden credentials
+    secretName: ""
 
 ## @param nameOverride String to partially override common.names.name
 ##
