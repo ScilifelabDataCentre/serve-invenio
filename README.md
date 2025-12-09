@@ -32,10 +32,18 @@ helm repo update
 # Create a separate namespace
 kubectl create namespace invenio
 
+# Create the secret first
+# This script will randomly generate the secrets
+# Do not disclose it or share
+chmod +x generate-invenio-secrets.sh
+./generate-invenio-secrets.sh > invenio-secrets.yaml
+
+# Apply the secrets
+kubectl apply -f invenio-secrets.yaml -n invenio
+
 # Deploy external services
 kubectl apply -f examples/opensearch.yaml -n invenio
 kubectl apply -f examples/rabbit-mq.yaml -n invenio
-
 
 # Installation with custom values
 helm upgrade --install invenio ./ -n invenio \
@@ -53,5 +61,9 @@ invenio users create admin@scilifelab.se --password=123456 --active
 invenio roles add admin@scilifelab.se admin
 
 # Delete it completely
+k -n invenio delete pvc --all
+kubectl delete secret invenio-secrets -n invenio
 helm uninstall invenio -n invenio --ignore-not-found
+
+# If you want to wipe out everything at once
 kubectl delete namespace invenio --ignore-not-found=true
