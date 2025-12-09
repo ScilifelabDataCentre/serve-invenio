@@ -42,8 +42,8 @@ chmod +x generate-invenio-secrets.sh
 kubectl apply -f invenio-secrets.yaml -n invenio
 
 # Deploy external services
-kubectl apply -f examples/opensearch.yaml -n invenio
-kubectl apply -f examples/rabbit-mq.yaml -n invenio
+kubectl apply -f externals/opensearch.yaml -n invenio
+kubectl apply -f externals/rabbit-mq.yaml -n invenio
 
 # Installation with custom values
 helm upgrade --install invenio ./ -n invenio \
@@ -65,7 +65,7 @@ invenio roles add admin@scilifelab.se admin
 # to exit from the pod
 exit
 
-# Delete it completely
+# Delete it completely, also make sure to delete all external pods
 k -n invenio delete pvc --all
 kubectl delete secret invenio-cluster-secrets -n invenio
 helm uninstall invenio -n invenio --ignore-not-found
