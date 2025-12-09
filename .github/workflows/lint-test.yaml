@@ -125,6 +125,6 @@ jobs:
           helm template test-release . -f test-values.yaml --dry-run -s templates/worker-deployment.yaml
           
           echo "Testing flower deployment..."
-          helm template test-release . -f test-values.yaml --dry-run -s templates/deployment.yaml
+          helm template test-release . -f test-values.yaml --dry-run -s templates/flower/deployment.yaml
           
           echo "All templates rendered successfully!"
