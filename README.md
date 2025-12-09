@@ -24,32 +24,51 @@ A production-ready Helm chart for deploying InvenioRDM with external dependencie
 ### Installation
 
 ```bash
-# Add the chart repository:
-helm repo add serve-invenio https://your-organization.github.io/serve-invenio/
+# Update the helm repository:
+git clone https://github.com/ScilifelabDataCentre/serve-invenio.git
+cd serve-invenio
 helm repo update
 
-# Create a separate namespace
+# Create a separate namespace.
 kubectl create namespace invenio
 
-# Deploy external services
-kubectl apply -f examples/opensearch.yaml -n invenio
-kubectl apply -f examples/rabbit-mq.yaml -n invenio
+# Create the secrets first.
+# This script will randomly generate the secrets.
+# Do not disclose it or share.
+chmod +x generate-invenio-secrets.sh
+./generate-invenio-secrets.sh > invenio-secrets.yaml
 
+# Apply the secrets
+kubectl apply -f invenio-secrets.yaml -n invenio
+
+# Deploy external services
+kubectl apply -f externals/opensearch.yaml -n invenio
+kubectl apply -f externals/rabbit-mq.yaml -n invenio
 
 # Installation with custom values
-helm install invenio serve-invenio/serve-invenio -n invenio \
+helm upgrade --install invenio ./ -n invenio \
   --values values-overrides.yaml
 
 # Populate Database
-kubectl cp scripts/wipe_recreate.sh invenio/invenio-web-xxxx:/tmp/wipe_recreate.sh -c web
-kubectl exec -n invenio invenio-web-invenio-web-xxxx -c web -- chmod +x /tmp/wipe_recreate.sh
-echo "y" | kubectl exec -n invenio invenio-web-xxxx -c web -i -- /tmp/wipe_recreate.sh
+# make sure to locate the correct invenio-web pod, 
+# for example using,
+# k -n invenio get po
+kubectl cp scripts/wipe_recreate.sh invenio/invenio-serve-invenio-web-xxxxxxxxxx-xxxxx:/tmp/wipe_recreate.sh -c web
+kubectl exec -n invenio invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -c web -- chmod +x /tmp/wipe_recreate.sh
+echo "y" | kubectl exec -n invenio invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -c web -i -- /tmp/wipe_recreate.sh
 
-# create an admin user
-kubectl -n invenio exec -it invenio-web-xxxx -- /bin/bash
+# Create an admin user
+kubectl -n invenio exec -it iinvenio-serve-invenio-web-xxxxxxxxxx-xxxxx -- /bin/bash
+# run the following commands inside the pod
 invenio users create admin@scilifelab.se --password=123456 --active
 invenio roles add admin@scilifelab.se admin
+# to exit from the pod
+exit
 
-# Delete it completely
+# Delete it completely, also make sure to delete all external pods
+k -n invenio delete pvc --all
+kubectl delete secret invenio-cluster-secrets -n invenio
 helm uninstall invenio -n invenio --ignore-not-found
+
+# If you want to wipe out everything at once
 kubectl delete namespace invenio --ignore-not-found=true

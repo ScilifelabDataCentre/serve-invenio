@@ -138,10 +138,14 @@ Return the proper Invenio image name
   Get the database password secret name
 */}}
 {{- define "invenio.rabbitmq.secretName" -}}
-  {{- if .Values.rabbitmq.enabled -}}
-    {{- required "Missing .Values.rabbitmq.auth.existingPasswordSecret" (tpl .Values.rabbitmq.auth.existingPasswordSecret .) -}}
+  {{- if .Values.global.bitwarden.enabled -}}
+    {{- .Values.global.bitwarden.secretName | default "invenio-bitwarden-secrets" -}}
   {{- else -}}
-    {{- required "Missing .Values.rabbitmqExternal.existingSecret" (tpl .Values.rabbitmqExternal.existingSecret .) -}}
+    {{- if .Values.rabbitmq.enabled -}}
+      {{- required "Missing .Values.rabbitmq.auth.existingPasswordSecret" (tpl .Values.rabbitmq.auth.existingPasswordSecret .) -}}
+    {{- else -}}
+      {{- required "Missing .Values.rabbitmqExternal.existingSecret" (tpl .Values.rabbitmqExternal.existingSecret .) -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 
@@ -149,10 +153,25 @@ Return the proper Invenio image name
   Get the database password secret key
 */}}
 {{- define "invenio.rabbitmq.secretKey" -}}
-  {{- if .Values.rabbitmq.enabled -}}
-    {{- required "Missing .Values.rabbitmq.auth.existingSecretPasswordKey" .Values.rabbitmq.auth.existingSecretPasswordKey -}}
+  {{- if .Values.global.bitwarden.enabled -}}
+    {{- "rabbitmq-password" -}}
   {{- else -}}
-    {{- required "Missing .Values.rabbitmqExternal.existingSecretPasswordKey" .Values.rabbitmqExternal.existingSecretPasswordKey -}}
+    {{- if .Values.rabbitmq.enabled -}}
+      {{- required "Missing .Values.rabbitmq.auth.existingSecretPasswordKey" .Values.rabbitmq.auth.existingSecretPasswordKey -}}
+    {{- else -}}
+      {{- required "Missing .Values.rabbitmqExternal.existingSecretPasswordKey" .Values.rabbitmqExternal.existingSecretPasswordKey -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+  Get RabbitMQ erlang cookie secret key with bitwarden support
+*/}}
+{{- define "invenio.rabbitmq.erlangCookieKey" -}}
+  {{- if .Values.global.bitwarden.enabled -}}
+    {{- "rabbitmq-erlang-cookie" -}}
+  {{- else -}}
+    {{- "rabbitmq-erlang-cookie" -}}
   {{- end -}}
 {{- end -}}
 
@@ -283,10 +302,14 @@ Return the proper Invenio image name
   Get the database password secret name
 */}}
 {{- define "invenio.postgresql.secretName" -}}
-  {{- if .Values.postgresql.enabled -}}
-    {{- required "Missing .Values.postgresql.auth.existingSecret" (tpl .Values.postgresql.auth.existingSecret .) -}}
+  {{- if .Values.global.bitwarden.enabled -}}
+    {{- .Values.global.bitwarden.secretName | default "invenio-bitwarden-secrets" -}}
   {{- else -}}
-    {{- required "Missing .Values.postgresqlExternal.existingSecret" (tpl .Values.postgresqlExternal.existingSecret .) -}}
+    {{- if .Values.postgresql.enabled -}}
+      {{- required "Missing .Values.postgresql.auth.existingSecret" (tpl .Values.postgresql.auth.existingSecret .) -}}
+    {{- else -}}
+      {{- required "Missing .Values.postgresqlExternal.existingSecret" (tpl .Values.postgresqlExternal.existingSecret .) -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 
@@ -294,10 +317,14 @@ Return the proper Invenio image name
   Get the database password secret key
 */}}
 {{- define "invenio.postgresql.secretKey" -}}
-  {{- if .Values.postgresql.enabled -}}
-    {{- required "Missing .Values.postgresql.auth.secretKeys.userPasswordKey" .Values.postgresql.auth.secretKeys.userPasswordKey -}}
+  {{- if .Values.global.bitwarden.enabled -}}
+    {{- "postgres-password" -}}
   {{- else -}}
-    {{- required "Missing .Values.postgresqlExternal.existingSecretPasswordKey" .Values.postgresqlExternal.existingSecretPasswordKey -}}
+    {{- if .Values.postgresql.enabled -}}
+      {{- required "Missing .Values.postgresql.auth.secretKeys.userPasswordKey" .Values.postgresql.auth.secretKeys.userPasswordKey -}}
+    {{- else -}}
+      {{- required "Missing .Values.postgresqlExternal.existingSecretPasswordKey" .Values.postgresqlExternal.existingSecretPasswordKey -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 
@@ -430,6 +457,17 @@ Get the invenio general secret name
 {{- else -}}
   {{- include "invenio.fullname" . -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Get the appropriate secret name based on bitwarden configuration
+*/}}
+{{- define "invenio.secretSource" -}}
+  {{- if .Values.global.bitwarden.enabled -}}
+    {{- .Values.global.bitwarden.secretName | default "invenio-bitwarden-secrets" -}}
+  {{- else -}}
+    {{- include "invenio.secretName" . -}}
+  {{- end -}}
 {{- end -}}
 
 {{/*

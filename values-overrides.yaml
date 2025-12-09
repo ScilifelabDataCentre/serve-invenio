@@ -1,9 +1,14 @@
 # values-overrides.yaml
 global:
+  existingSecret: "invenio-cluster-secrets"
   timezone: "Europe/Stockholm"
+  bitwarden:
+    enabled: false
+    secretName: "invenio-bitwarden-secrets"
 
 invenio:
   hostname: "invenio.serve-dev.scilifelab.se"
+  existingSecret: "{{ .Values.global.existingSecret }}"
 
 image:
   registry: ghcr.io/inveniosoftware
@@ -30,7 +35,8 @@ rabbitmqExternal:
   amqpPort: 5672
   managementPort: 15672
   username: "user"
-  password: "mq_password"
+  existingSecret: "{{ .Values.global.existingSecret }}"
+  existingSecretPasswordKey: "rabbitmq-password"
   protocol: "amqp"
   vhost: "/"
 
@@ -39,7 +45,8 @@ postgresql:
   enabled: true
   auth:
     username: "invenio"
-    password: "db_password"
+    existingSecret: "{{ .Values.global.existingSecret }}"
+    existingSecretPasswordKey: "postgres-password"
     database: "invenio"
   podSecurityContext:
     runAsNonRoot: true
@@ -61,8 +68,8 @@ postgresql:
 flower:
   enabled: true
   image: "mher/flower:2.0"
-  default_password: "flower_password"
-  secret_name: "flower-secrets"
+  secret_name: "{{ .Values.global.existingSecret }}"
+  existing_secret: true
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 1000

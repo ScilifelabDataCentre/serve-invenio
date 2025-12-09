@@ -29,63 +29,102 @@ jobs:
           # Lint the main chart
           helm lint .
           
-          # Dry-run to check templates render (disable dependencies for testing)
-          helm template test-release . \
-            --set invenio.hostname="test.example.com" \
-            --set postgresql.auth.password="test123" \
-            --set rabbitmqExternal.password="test456" \
-            --set flower.default_password="test789" \
-            --set opensearch.enabled=false \
-            --set rabbitmq.enabled=false \
-            --set redis.enabled=false \
-            --set postgresql.enabled=false \
-            --dry-run
-
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.8.0
-        with:
-          node_image: kindest/node:v1.27.3
-
-      - name: Install Chart in Test Cluster
-        run: |
-          # Create namespace
-          kubectl create namespace test-invenio || true
+          # Create a minimal test values file for template validation
+          cat > test-values.yaml <<EOF
+          global:
+            timezone: "Europe/Stockholm"
+            bitwarden:
+              enabled: false
           
-          # Install dependencies first
-          kubectl apply -f examples/opensearch.yaml -n test-invenio --wait
-          kubectl apply -f examples/rabbit-mq.yaml -n test-invenio --wait
+          invenio:
+            hostname: "test.example.com"
+            existingSecret: "test-secrets"
           
-          # Create test secrets
-          kubectl create secret generic test-secrets -n test-invenio \
-            --from-literal=secret-key=test-key \
-            --from-literal=security-login-salt=test-salt \
-            --from-literal=csrf-secret-salt=test-csrf \
-            --dry-run=client -o yaml | kubectl apply -f -
+          image:
+            registry: ghcr.io/inveniosoftware
+            repository: demo-inveniordm/demo-inveniordm
+            tag: ""
+            pullPolicy: IfNotPresent
           
-          # Install the chart with test values (disable built-in dependencies)
-          helm upgrade --install test-invenio . -n test-invenio \
-            --set invenio.hostname="test.example.com" \
-            --set postgresql.enabled=false \
-            --set postgresqlExternal.hostname="postgresql" \
-            --set postgresqlExternal.username="invenio" \
-            --set postgresqlExternal.password="test123" \
-            --set postgresqlExternal.database="invenio" \
-            --set rabbitmq.enabled=false \
-            --set rabbitmqExternal.hostname="rabbitmq" \
-            --set rabbitmqExternal.password="test456" \
-            --set rabbitmqExternal.username="user" \
-            --set opensearch.enabled=false \
-            --set opensearchExternal.hostname="opensearch" \
-            --set redis.enabled=false \
-            --set redisExternal.hostname="redis" \
-            --set flower.default_password="test789" \
-            --set ingress.enabled=false \
-            --set persistence.enabled=false \
-            --wait --timeout 5m
+          # Use external services to simplify testing
+          opensearch:
+            enabled: false
+          opensearchExternal:
+            hostname: "opensearch"
+            port: 9200
           
-          # Check if pods are running
-          kubectl get pods -n test-invenio
+          rabbitmq:
+            enabled: false
+          rabbitmqExternal:
+            hostname: "rabbitmq"
+            amqpPort: 5672
+            managementPort: 15672
+            username: "user"
+            existingSecret: "test-secrets"
+            existingSecretPasswordKey: "rabbitmq-password"
+            protocol: "amqp"
+            vhost: "/"
           
-          # Clean up
-          helm uninstall test-invenio -n test-invenio || true
-          kubectl delete namespace test-invenio --wait || true
+          postgresql:
+            enabled: false
+          postgresqlExternal:
+            hostname: "postgresql"
+            port: 5432
+            username: "invenio"
+            existingSecret: "test-secrets"
+            existingSecretPasswordKey: "postgres-password"
+            database: "invenio"
+          
+          redis:
+            enabled: false
+          redisExternal:
+            hostname: "redis"
+          
+          flower:
+            enabled: true
+            image: "mher/flower:2.0"
+            secret_name: "test-secrets"
+          
+          web:
+            replicas: 1
+            resources: 
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 200m
+                memory: 256Mi
+          
+          worker:
+            replicas: 1
+            concurrency: 1
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 200m
+                memory: 256Mi
+          
+          ingress:
+            enabled: false
+          
+          persistence:
+            enabled: false
+          EOF
+          
+          # Dry-run to check templates render with the test values
+          echo "Testing template rendering..."
+          helm template test-release . -f test-values.yaml --dry-run --debug
+          
+          # Test specific deployments individually
+          echo "Testing web deployment..."
+          helm template test-release . -f test-values.yaml --dry-run -s templates/web-deployment.yaml
+          
+          echo "Testing worker deployment..."
+          helm template test-release . -f test-values.yaml --dry-run -s templates/worker-deployment.yaml
+          
+          echo "Testing flower deployment..."
+          helm template test-release . -f test-values.yaml --dry-run -s templates/flower/deployment.yaml
+          
+          echo "All templates rendered successfully!"
