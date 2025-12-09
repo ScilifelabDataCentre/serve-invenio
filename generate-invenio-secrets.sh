@@ -30,7 +30,7 @@ cat <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
-  name: invenio-secrets
+  name: invenio-cluster-secrets
 type: Opaque
 data:
   # PostgreSQL
