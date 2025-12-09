@@ -244,8 +244,8 @@ jobs:
           EOF
 
           # Install dependencies first
-          kubectl apply -f externals/opensearch.yaml -n test-invenio --wait
-          kubectl apply -f externals/rabbit-mq.yaml -n test-invenio --wait
+          # kubectl apply -f externals/opensearch.yaml -n test-invenio --wait
+          # kubectl apply -f externals/rabbit-mq.yaml -n test-invenio --wait
           
           # Install the chart with test values
           helm upgrade --install test-invenio . -n test-invenio \
