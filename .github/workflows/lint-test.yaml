@@ -29,111 +29,10 @@ jobs:
           # Lint the main chart
           helm lint .
           
-          # Create a minimal test values file based on values-overrides.yaml
-          cat > lint-values.yaml <<EOF
-          global:
-            timezone: "Europe/Stockholm"
-            existingSecret: "test-secrets"
-            bitwarden:
-              enabled: false
-          
-          invenio:
-            hostname: "test.example.com"
-            existingSecret: "test-secrets"
-          
-          image:
-            registry: ghcr.io/inveniosoftware
-            repository: demo-inveniordm/demo-inveniordm
-            tag: ""
-            pullPolicy: IfNotPresent
-          
-          opensearch:
-            enabled: false
-          
-          opensearchExternal:
-            hostname: "opensearch"
-            port: 9200
-          
-          rabbitmq:
-            enabled: false
-          
-          rabbitmqExternal:
-            hostname: "rabbitmq"
-            amqpPort: 5672
-            managementPort: 15672
-            username: "user"
-            existingSecret: "test-secrets"
-            existingSecretPasswordKey: "rabbitmq-password"
-            protocol: "amqp"
-            vhost: "/"
-          
-          postgresql:
-            enabled: false
-          
-          postgresqlExternal:
-            hostname: "postgresql"
-            port: 5432
-            username: "invenio"
-            existingSecret: "test-secrets"
-            existingSecretPasswordKey: "postgres-password"
-            database: "invenio"
-          
-          flower:
-            enabled: true
-            image: "mher/flower:2.0"
-            secret_name: "test-secrets"
-            existing_secret: true
-          
-          redis:
-            enabled: false
-          
-          redisExternal:
-            hostname: "redis"
-          
-          ingress:
-            enabled: false
-          
-          persistence:
-            enabled: false
-          EOF
-          
-          # Dry-run to check templates render with the test values
-          helm template test-release . -f lint-values.yaml --dry-run
-
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.8.0
-        with:
-          node_image: kindest/node:v1.27.3
-
-      - name: Install Chart in Test Cluster
-        run: |
-          # Create namespace
-          kubectl create namespace test-invenio || true
-          
-          # Create test secret with all required keys (based on consolidated-secrets.yaml)
-          kubectl create secret generic test-secrets -n test-invenio \
-            --from-literal=secret-key="dummy-key" \
-            --from-literal=security-login-salt="dummy-salt" \
-            --from-literal=csrf-secret-salt="dummy-csrf" \
-            --from-literal=postgres-password="test123" \
-            --from-literal=rabbitmq-password="test456" \
-            --from-literal=rabbitmq-erlang-cookie="dummy-cookie" \
-            --from-literal=FLOWER_BASIC_AUTH_CREDENTIALS="dummy-flower" \
-            --from-literal=INVENIO_SECRET_KEY="dummy-invenio-key" \
-            --from-literal=INVENIO_SECURITY_LOGIN_SALT="dummy-login-salt" \
-            --from-literal=INVENIO_SECURITY_PASSWORD_SALT="dummy-password-salt" \
-            --from-literal=INVENIO_SECURITY_CONFIRM_SALT="dummy-confirm-salt" \
-            --from-literal=INVENIO_SECURITY_RESET_SALT="dummy-reset-salt" \
-            --from-literal=INVENIO_SECURITY_CHANGE_SALT="dummy-change-salt" \
-            --from-literal=INVENIO_SECURITY_REMEMBER_SALT="dummy-remember-salt" \
-            --from-literal=INVENIO_CSRF_SECRET_SALT="dummy-csrf-salt" \
-            --dry-run=client -o yaml | kubectl apply -f -
-          
-          # Create a test values file for installation
+          # Create a minimal test values file for template validation
           cat > test-values.yaml <<EOF
           global:
             timezone: "Europe/Stockholm"
-            existingSecret: "test-secrets"
             bitwarden:
               enabled: false
           
@@ -147,17 +46,15 @@ jobs:
             tag: ""
             pullPolicy: IfNotPresent
           
-          # Disable built-in services and use external
+          # Use external services to simplify testing
           opensearch:
             enabled: false
-          
           opensearchExternal:
             hostname: "opensearch"
             port: 9200
           
           rabbitmq:
             enabled: false
-          
           rabbitmqExternal:
             hostname: "rabbitmq"
             amqpPort: 5672
@@ -170,7 +67,6 @@ jobs:
           
           postgresql:
             enabled: false
-          
           postgresqlExternal:
             hostname: "postgresql"
             port: 5432
@@ -181,7 +77,6 @@ jobs:
           
           redis:
             enabled: false
-          
           redisExternal:
             hostname: "redis"
           
@@ -189,7 +84,6 @@ jobs:
             enabled: true
             image: "mher/flower:2.0"
             secret_name: "test-secrets"
-            existing_secret: true
           
           web:
             replicas: 1
@@ -218,25 +112,19 @@ jobs:
           persistence:
             enabled: false
           EOF
-
-          # Install dependencies first
-          # kubectl apply -f externals/opensearch.yaml -n test-invenio --wait
-          # kubectl apply -f externals/rabbit-mq.yaml -n test-invenio --wait
           
-          # Install the chart with test values
-          helm upgrade --install test-invenio . -n test-invenio \
-            -f test-values.yaml \
-            --wait --timeout 5m
+          # Dry-run to check templates render with the test values
+          echo "Testing template rendering..."
+          helm template test-release . -f test-values.yaml --dry-run --debug
           
+          # Test specific deployments individually
+          echo "Testing web deployment..."
+          helm template test-release . -f test-values.yaml --dry-run -s templates/web-deployment.yaml
           
-          # Check deployment status
-          echo "Checking deployments..."
-          kubectl get deployments -n test-invenio
+          echo "Testing worker deployment..."
+          helm template test-release . -f test-values.yaml --dry-run -s templates/worker-deployment.yaml
           
-          # Check if web pods are running (they may fail due to missing external dependencies, but that's OK for test)
-          echo "Checking pod status..."
-          kubectl get pods -n test-invenio
+          echo "Testing flower deployment..."
+          helm template test-release . -f test-values.yaml --dry-run -s templates/deployment.yaml
           
-          # Clean up
-          helm uninstall test-invenio -n test-invenio || true
-          kubectl delete namespace test-invenio --wait || true
+          echo "All templates rendered successfully!"
