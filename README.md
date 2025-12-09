@@ -29,12 +29,12 @@ git clone https://github.com/ScilifelabDataCentre/serve-invenio.git
 cd serve-invenio
 helm repo update
 
-# Create a separate namespace
+# Create a separate namespace.
 kubectl create namespace invenio
 
-# Create the secret first
-# This script will randomly generate the secrets
-# Do not disclose it or share
+# Create the secrets first.
+# This script will randomly generate the secrets.
+# Do not disclose it or share.
 chmod +x generate-invenio-secrets.sh
 ./generate-invenio-secrets.sh > invenio-secrets.yaml
 
@@ -57,11 +57,13 @@ kubectl cp scripts/wipe_recreate.sh invenio/invenio-serve-invenio-web-xxxxxxxxxx
 kubectl exec -n invenio invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -c web -- chmod +x /tmp/wipe_recreate.sh
 echo "y" | kubectl exec -n invenio invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -c web -i -- /tmp/wipe_recreate.sh
 
-# create an admin user
-kubectl -n invenio exec -it invenio-web-xxxx -- /bin/bash
+# Create an admin user
+kubectl -n invenio exec -it iinvenio-serve-invenio-web-xxxxxxxxxx-xxxxx -- /bin/bash
 # run the following commands inside the pod
 invenio users create admin@scilifelab.se --password=123456 --active
 invenio roles add admin@scilifelab.se admin
+# to exit from the pod
+exit
 
 # Delete it completely
 k -n invenio delete pvc --all
