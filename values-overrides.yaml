@@ -7,8 +7,17 @@ global:
     secretName: "invenio-bitwarden-secrets"
 
 invenio:
-  hostname: "invenio-dev.serve-dev.scilifelab.se"
+  hostname: "invenio-test.serve-dev.scilifelab.se"
   existingSecret: "{{ .Values.global.existingSecret }}"
+  datacite:
+    enabled: true
+    existingSecret: "datacite-secrets"
+    secretKeys:
+      usernameKey: "DATACITE_USERNAME"
+      passwordKey: "DATACITE_PASSWORD"
+    prefix: "10.83812"
+    testMode: true
+    #format: "{prefix}/scilifelab.{id}"
 
 image:
   registry: ghcr.io/inveniosoftware
@@ -68,7 +77,7 @@ postgresql:
 flower:
   enabled: true
   image: "mher/flower:2.0"
-  secret_name: "{{ .Values.global.existingSecret }}"
+  secret_name:  "invenio-cluster-secrets" #"{{ .Values.global.existingSecret }}"
   existing_secret: true
   podSecurityContext:
     runAsNonRoot: true
@@ -171,6 +180,7 @@ ingress:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   tlsSecretNameOverride: "invenio-tls"
+
 
 # Redis configuration
 redis:
