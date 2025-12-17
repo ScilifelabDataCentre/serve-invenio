@@ -501,7 +501,7 @@ Add datacite environmental variables
 - name: INVENIO_DATACITE_PREFIX
   value: {{ required "Missing .Values.invenio.datacite.prefix" .Values.invenio.datacite.prefix | quote }}
 - name: INVENIO_DATACITE_TEST_MODE
-  value: {{ required "Missing .Values.invenio.values.datacite.testMode" .Values.invenio.datacite.testMode | quote }}
+  value: {{ required "Missing .Values.invenio.datacite.testMode" .Values.invenio.datacite.testMode | quote }}
 {{- with .Values.invenio.datacite.format }}
 - name: INVENIO_DATACITE_FORMAT
   value: {{ . }}
