@@ -7,7 +7,7 @@ global:
     secretName: "invenio-bitwarden-secrets"
 
 invenio:
-  hostname: "invenio-test.serve-dev.scilifelab.se"
+  hostname: "invenio-dev.serve-dev.scilifelab.se"
   existingSecret: "{{ .Values.global.existingSecret }}"
   datacite:
     enabled: true
@@ -17,7 +17,7 @@ invenio:
       passwordKey: "DATACITE_PASSWORD"
     prefix: "10.83812"
     testMode: true
-    #format: "{prefix}/scilifelab.{id}"
+    format: "{prefix}/SCILIFELAB.{id}"
 
 image:
   registry: ghcr.io/inveniosoftware

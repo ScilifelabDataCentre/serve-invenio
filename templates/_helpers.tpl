@@ -504,7 +504,7 @@ Add datacite environmental variables
   value: {{ required "Missing .Values.invenio.datacite.testMode" .Values.invenio.datacite.testMode | quote }}
 {{- with .Values.invenio.datacite.format }}
 - name: INVENIO_DATACITE_FORMAT
-  value: {{ . }}
+  value: {{ . | quote }}
 {{- end}}
 {{- with .Values.invenio.datacite.dataCenterSymbol }}
 - name: INVENIO_DATACITE_DATACENTER_SYMBOL
