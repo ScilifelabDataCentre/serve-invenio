@@ -11,7 +11,7 @@ invenio:
   existingSecret: "{{ .Values.global.existingSecret }}"
   datacite:
     enabled: true
-    existingSecret: "datacite-secrets"
+    existingSecret: "{{ .Values.global.existingSecret }}"
     secretKeys:
       usernameKey: "DATACITE_USERNAME"
       passwordKey: "DATACITE_PASSWORD"
