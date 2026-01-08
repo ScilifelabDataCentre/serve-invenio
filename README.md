@@ -34,6 +34,8 @@ kubectl create namespace invenio
 
 # Create the secrets first.
 # This script will randomly generate the secrets.
+# Note: This script does not include the correct DATACITE_USERNAME and DATACITE_PASSWORD,
+# make sure to have them if you want to use them
 # Do not disclose it or share.
 chmod +x generate-invenio-secrets.sh
 ./generate-invenio-secrets.sh > invenio-secrets.yaml
@@ -58,10 +60,10 @@ kubectl exec -n invenio invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -c web -- chm
 echo "y" | kubectl exec -n invenio invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -c web -i -- /tmp/wipe_recreate.sh
 
 # Create an admin user
-kubectl -n invenio exec -it iinvenio-serve-invenio-web-xxxxxxxxxx-xxxxx -- /bin/bash
+kubectl -n invenio exec -it invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -- /bin/bash
 # run the following commands inside the pod
-invenio users create admin@scilifelab.se --password=123456 --active
-invenio roles add admin@scilifelab.se admin
+invenio users create <provide-admin-email> --password=<provide-admin-password> --active
+invenio roles add <provide-admin-email> admin
 # to exit from the pod
 exit
 
