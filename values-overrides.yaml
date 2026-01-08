@@ -10,7 +10,7 @@ invenio:
   hostname: "invenio-dev.serve-dev.scilifelab.se"
   existingSecret: "{{ .Values.global.existingSecret }}"
   datacite:
-    enabled: true
+    enabled: false
     existingSecret: "{{ .Values.global.existingSecret }}"
     secretKeys:
       usernameKey: "DATACITE_USERNAME"
