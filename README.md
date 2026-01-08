@@ -35,7 +35,7 @@ kubectl create namespace invenio
 # Create the secrets first.
 # This script will randomly generate the secrets.
 # Note: This script does not include the correct DATACITE_USERNAME and DATACITE_PASSWORD,
-# make sure to have them if you want to use them
+# make sure to use the correct values of them if you want to mint DOI using datacite credentials
 # Do not disclose it or share.
 chmod +x generate-invenio-secrets.sh
 ./generate-invenio-secrets.sh > invenio-secrets.yaml
@@ -48,12 +48,13 @@ kubectl apply -f externals/opensearch.yaml -n invenio
 kubectl apply -f externals/rabbit-mq.yaml -n invenio
 
 # Installation with custom values
+# Note: Make sure to set invenio.datacite.enabled to 'true' if you want to mint DOI using datacite credentials
 helm upgrade --install invenio ./ -n invenio \
   --values values-overrides.yaml
 
 # Populate Database
 # make sure to locate the correct invenio-web pod, 
-# for example using,
+# for example, using,
 # k -n invenio get po
 kubectl cp scripts/wipe_recreate.sh invenio/invenio-serve-invenio-web-xxxxxxxxxx-xxxxx:/tmp/wipe_recreate.sh -c web
 kubectl exec -n invenio invenio-serve-invenio-web-xxxxxxxxxx-xxxxx -c web -- chmod +x /tmp/wipe_recreate.sh
