@@ -11,7 +11,7 @@ invenio:
   existingSecret: "{{ .Values.global.existingSecret }}"
   datacite:
     enabled: false
-    existingSecret: "{{ .Values.global.existingSecret }}"
+    existingSecret: "invenio-bitwarden-secrets"
     secretKeys:
       usernameKey: "DATACITE_USERNAME"
       passwordKey: "DATACITE_PASSWORD"
