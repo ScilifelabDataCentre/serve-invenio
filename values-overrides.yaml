@@ -20,9 +20,9 @@ invenio:
     format: "{prefix}/SCILIFELAB.{id}"
 
 image:
-  registry: ghcr.io/inveniosoftware
-  repository: demo-inveniordm/demo-inveniordm
-  tag: ""
+  registry: docker.io
+  repository: mahbub1969/serve-dev-inveniordm
+  tag: "v1"
   pullPolicy: IfNotPresent
 
 # Disable built-in OpenSearch and use external configuration
