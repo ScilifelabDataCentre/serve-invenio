@@ -18,6 +18,9 @@ invenio:
     prefix: "10.83812"
     testMode: true
     format: "{prefix}/SCILIFELAB.{id}"
+    landingPageUrl:
+      template: "https://serve-dev.scilifelab.se/records/{app_code}/{id}"
+      parentTemplate: "https://serve-dev.scilifelab.se/records/{app_code}"
 
 image:
   registry: docker.io
