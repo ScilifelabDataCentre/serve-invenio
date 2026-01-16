@@ -24,7 +24,7 @@ invenio:
 
 image:
   registry: docker.io
-  repository: mahbub1969/serve-dev-inveniordm
+  repository: mahbub1969/serve-inveniordm
   tag: "v1"
   pullPolicy: IfNotPresent
 
