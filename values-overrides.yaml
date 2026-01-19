@@ -25,7 +25,7 @@ invenio:
 image:
   registry: docker.io
   repository: mahbub1969/serve-inveniordm
-  tag: "v1"
+  tag: "v2"
   pullPolicy: IfNotPresent
 
 # Disable built-in OpenSearch and use external configuration
