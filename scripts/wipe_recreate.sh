@@ -33,7 +33,8 @@ invenio index queue init purge
 # NOTE: db init is not needed since DB keeps being created
 #       Just need to create all tables from it.
 invenio db create
-invenio files location create --default 'default-location' $(invenio shell --no-term-title -c "print(app.instance_path)")'/data'
+#invenio files location create --default 'default-location' $(invenio shell --no-term-title -c "print(app.instance_path)")'/data'
+invenio files location create --default 'default-location' /opt/invenio/var/instance/data
 #
 # Create roles
 #
@@ -55,4 +56,3 @@ invenio communities custom-fields init
 # -------------
 invenio rdm-records fixtures
 invenio rdm-records demo
-
