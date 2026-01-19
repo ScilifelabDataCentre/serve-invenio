@@ -55,4 +55,4 @@ invenio communities custom-fields init
 # Add demo and fixtures data
 # -------------
 invenio rdm-records fixtures
-invenio rdm-records demo
+# invenio rdm-records demo
