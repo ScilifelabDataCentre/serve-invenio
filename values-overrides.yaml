@@ -13,8 +13,8 @@ invenio:
     enabled: false
     existingSecret: "invenio-bitwarden-secrets"
     secretKeys:
-      usernameKey: "DATACITEE_USERNAME"
-      passwordKey: "DATACITEE_PASSWORD"
+      usernameKey: "DATACITE_USERNAME"
+      passwordKey: "DATACITE_PASSWORD"
     prefix: "10.83812"
     testMode: true
     format: "{prefix}/SCILIFELAB.{id}"
