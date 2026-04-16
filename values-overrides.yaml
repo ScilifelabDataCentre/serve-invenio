@@ -8,6 +8,7 @@ global:
 
 invenio:
   hostname: "invenio-dev.serve-dev.scilifelab.se"
+  serviceName: "serve-invenio-dev-web.invenio-dev.svc.cluster.local"
   existingSecret: "{{ .Values.global.existingSecret }}"
   datacite:
     enabled: false
