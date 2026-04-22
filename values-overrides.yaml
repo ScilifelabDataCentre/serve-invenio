@@ -136,6 +136,7 @@ worker:
     failureThreshold: 5
 
 workerBeat:
+  schedulerClass: "invenio_jobs.services.scheduler:RunScheduler"
   livenessProbe:
     exec:
       command:

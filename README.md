@@ -65,8 +65,20 @@ Compared with upstream `helm-invenio`, this repo currently overrides:
 - release naming via `fullnameOverride: invenio`
 - trusted host settings for in-cluster service access
 - existing secret references for Invenio, PostgreSQL, RabbitMQ, and optionally DataCite
+- the Celery beat scheduler class needed for InvenioRDM v13 Jobs
 - persistence storage class
 - a few web/worker resource and probe settings
+
+## Jobs And Scheduled Vocabulary Imports
+
+This deployment enables the InvenioRDM v13 Jobs scheduler via:
+
+- `workerBeat.schedulerClass: invenio_jobs.services.scheduler:RunScheduler`
+
+That means the `worker-beat` deployment can execute Jobs created in the
+administration UI, including the default ROR vocabulary jobs such as `Load ROR
+funders`, as long as the deployed image actually includes the InvenioRDM v13
+jobs/task registrations.
 
 ## Secrets
 

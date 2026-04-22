@@ -651,6 +651,10 @@ worker:
     strategy: null
 
 workerBeat:
+  ## @param workerBeat.schedulerClass Optional Celery beat scheduler class.
+  ## Set this to `invenio_jobs.services.scheduler:RunScheduler` for InvenioRDM v13 jobs.
+  ##
+  schedulerClass: ""
   ## @param workerBeat.extraEnvVars Extra environment variables to be added to the pods.
   ##
   extraEnvVars: []

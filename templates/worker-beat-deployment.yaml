@@ -1,4 +1,8 @@
 ---
+{{- $schedulerArg := "" -}}
+{{- with .Values.workerBeat.schedulerClass }}
+  {{- $schedulerArg = printf " --scheduler %s" (tpl . $) -}}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -55,7 +59,7 @@ spec:
         command: [
           "/bin/bash",
           "-c",
-          "celery -A {{ .Values.worker.app }} beat -l {{ .Values.worker.log_level }} -s {{ .Values.worker.celery_schedule }} --pidfile {{ .Values.worker.celery_pidfile }}"
+          {{ printf "celery -A %s beat -l %s -s %s --pidfile %s%s" .Values.worker.app .Values.worker.log_level .Values.worker.celery_schedule .Values.worker.celery_pidfile $schedulerArg | quote }}
         ]
         securityContext:
           {{- with .Values.workerBeat.securityContext }}
