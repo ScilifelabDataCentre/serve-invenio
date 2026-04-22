@@ -47,6 +47,7 @@ rabbitmq:
 
 postgresql:
   enabled: true
+  fullnameOverride: "invenio-postgresql"
   auth:
     username: "invenio"
     database: "invenio"
@@ -153,6 +154,7 @@ ingress:
 
 redis:
   enabled: true
+  fullnameOverride: "invenio-redis"
   auth:
     enabled: false
   podSecurityContext:
