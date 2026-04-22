@@ -12,8 +12,8 @@ image:
 invenio:
   hostname: "invenio.serve-dev.scilifelab.se"
   existingSecret: "invenio-bitwarden-secrets"
-  init: true
-  upgradeInit: true
+  init: false
+  upgradeInit: false
   demo_data: false
   defaultUsers:
     enabled: true

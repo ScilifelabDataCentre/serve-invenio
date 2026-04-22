@@ -39,6 +39,18 @@ Those concerns should be handled outside this repository.
 
 Argo CD should deploy this chart with [values-overrides.yaml](/Users/hamim160/Documents/GitHub/ScilifelabDataCentre/serve-invenio/values-overrides.yaml).
 
+For first-time bootstrap, temporarily enable:
+
+```yaml
+invenio:
+  init: true
+```
+
+After the initial install job has completed successfully, set `invenio.init`
+back to `false`. This is important with Argo CD because Helm hooks are mapped
+to Argo sync hooks, and Argo does not distinguish cleanly between "install" and
+"upgrade" operations for hook execution.
+
 If you want to render or test the chart locally:
 
 ```bash
