@@ -229,6 +229,14 @@ invenio:
     # - configMapRef:
     #     name: bar
 
+  ## @param invenio.extraVolumeMounts Extra volumeMounts for all Invenio containers.
+  ##
+  extraVolumeMounts: []
+
+  ## @param invenio.extraVolumes Extra volumes for all Invenio pods.
+  ##
+  extraVolumes: []
+
   ## @param invenio.vocabularies Vocabularies to be loaded as files under /app_data/vocabularies
   ## Example
   ## vocabularies:
@@ -519,6 +527,16 @@ web:
     ##
     strategy: null
 
+  deployment:
+    annotations: {}
+    labels: {}
+    spec:
+      minReadySeconds: null
+      paused: null
+      progressDeadlineSeconds: null
+      revisionHistoryLimit: null
+      strategy: null
+
 ## @Section Worker (Celery) configuration
 ##
 worker:
@@ -596,6 +614,14 @@ worker:
     #     name: foo
     # - configMapRef:
     #     name: bar
+
+  ## @param worker.extraVolumeMounts Extra volumeMounts for the worker container.
+  ##
+  extraVolumeMounts: []
+
+  ## @param worker.extraVolumes Extra volumes for the worker Pod.
+  ##
+  extraVolumes: []
   ## @param worker.podLabels Add extra labels to the Invenio workers pods
   ##
   podLabels: {}
@@ -650,6 +676,16 @@ worker:
     ##
     strategy: null
 
+  deployment:
+    annotations: {}
+    labels: {}
+    spec:
+      minReadySeconds: null
+      paused: null
+      progressDeadlineSeconds: null
+      revisionHistoryLimit: null
+      strategy: null
+
 workerBeat:
   ## @param workerBeat.schedulerClass Optional Celery beat scheduler class.
   ## Set this to `invenio_jobs.services.scheduler:RunScheduler` for InvenioRDM v13 jobs.
@@ -702,6 +738,14 @@ workerBeat:
     #     name: foo
     # - configMapRef:
     #     name: bar
+
+  ## @param workerBeat.extraVolumeMounts Extra volumeMounts for the worker beat container.
+  ##
+  extraVolumeMounts: []
+
+  ## @param workerBeat.extraVolumes Extra volumes for the worker beat Pod.
+  ##
+  extraVolumes: []
   ## @param workerBeat.podLabels Add extra labels to the Invenio workerBeat pods
   ##
   podLabels: {}
@@ -755,6 +799,16 @@ workerBeat:
     ## @param workerBeat.deploymentSpec.strategy See API spec for `Deployment.spec.strategy
     ##
     strategy: null
+
+  deployment:
+    annotations: {}
+    labels: {}
+    spec:
+      minReadySeconds: null
+      paused: null
+      progressDeadlineSeconds: null
+      revisionHistoryLimit: null
+      strategy: null
 
 ## @section Terminal
 ## Pods for runnning maintenance tasks.
@@ -881,6 +935,16 @@ terminal:
     ## @param terminal.deploymentSpec.strategy See API spec for `Deployment.spec.strategy
     ##
     strategy: null
+
+  deployment:
+    annotations: {}
+    labels: {}
+    spec:
+      minReadySeconds: null
+      paused: null
+      progressDeadlineSeconds: null
+      revisionHistoryLimit: null
+      strategy: null
 
 ## @Section Persistence
 ##
@@ -1064,6 +1128,16 @@ flower:
     ## @param flower.deploymentSpec.strategy See API spec for `Deployment.spec.strategy
     ##
     strategy: null
+
+  deployment:
+    annotations: {}
+    labels: {}
+    spec:
+      minReadySeconds: null
+      paused: null
+      progressDeadlineSeconds: null
+      revisionHistoryLimit: null
+      strategy: null
 
 ## @section PostgreSQL chart configuration
 ## ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
