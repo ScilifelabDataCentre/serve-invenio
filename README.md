@@ -77,8 +77,9 @@ these keys are present:
 - `DEFAULT_MACHINE_EMAIL`
 - `DEFAULT_MACHINE_PASSWORD`
 
-The install init job will create those users and add the `admin` role on first
-install.
+The default users are managed by a separate Helm hook job that runs on both
+install and upgrade, and it adds the `admin` role to those users if the secret
+keys are present.
 
 ## Reset And Recreate
 
