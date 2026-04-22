@@ -11,7 +11,40 @@ metadata:
     "helm.sh/hook": post-install
     "helm.sh/hook-weight": "1"
 {{/*    "helm.sh/hook-delete-policy": hook-succeeded*/}}
-{{- $cmd := "invenio db init && invenio db create && invenio index init && invenio index queue init purge && invenio files location --default 'default-location'  $(invenio shell --no-term-title -c \"print(app.instance_path)\")'/data' && invenio roles create admin && invenio access allow superuser-access role admin" -}}
+{{- $cmd := `
+set -e
+
+ensure_user() {
+  local email="$1"
+  local password="$2"
+
+  if [[ -z "$email" || -z "$password" ]]; then
+    return 0
+  fi
+
+  if invenio users create "$email" --password="$password" --active --confirm; then
+    :
+  else
+    echo "Default user $email already exists or could not be created automatically; continuing"
+  fi
+
+  if invenio roles add "$email" admin; then
+    :
+  else
+    echo "Default user $email already has admin role or role assignment could not be changed automatically; continuing"
+  fi
+}
+
+invenio db init
+invenio db create
+invenio index init
+invenio index queue init purge
+invenio files location --default 'default-location' $(invenio shell --no-term-title -c "print(app.instance_path)")'/data'
+invenio roles create admin || true
+invenio access allow superuser-access role admin || true
+ensure_user "${DEFAULT_ADMIN_EMAIL:-}" "${DEFAULT_ADMIN_PASSWORD:-}"
+ensure_user "${DEFAULT_MACHINE_EMAIL:-}" "${DEFAULT_MACHINE_PASSWORD:-}"
+` -}}
 {{- range $usr, $pass := .Values.invenio.default_users -}}
   {{- $cmd = printf "%s && invenio users create --active --password=%s %s" $cmd $pass $usr -}}
 {{- end -}}
@@ -36,9 +69,39 @@ spec:
             name: {{ include "invenio.fullname" . }}-config
         - secretRef:
             name: {{ include "invenio.secretName" . }}
+        {{- if and .Values.invenio.defaultUsers.enabled .Values.invenio.defaultUsers.existingSecret }}
+        - secretRef:
+            name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+        {{- end }}
         env:
         - name: TZ
           value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
+        {{- if and .Values.invenio.defaultUsers.enabled .Values.invenio.defaultUsers.existingSecret }}
+        - name: DEFAULT_ADMIN_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+              key: {{ .Values.invenio.defaultUsers.secretKeys.adminEmailKey }}
+              optional: true
+        - name: DEFAULT_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+              key: {{ .Values.invenio.defaultUsers.secretKeys.adminPasswordKey }}
+              optional: true
+        - name: DEFAULT_MACHINE_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+              key: {{ .Values.invenio.defaultUsers.secretKeys.machineEmailKey }}
+              optional: true
+        - name: DEFAULT_MACHINE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+              key: {{ .Values.invenio.defaultUsers.secretKeys.machinePasswordKey }}
+              optional: true
+        {{- end }}
         {{- include "invenio.config.queue" . | nindent 8 }}
         {{- include "invenio.config.database" . | nindent 8 }}
         {{- with .Values.invenio.extraEnvVars }}

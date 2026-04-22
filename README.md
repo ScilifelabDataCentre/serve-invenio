@@ -69,6 +69,17 @@ references `invenio-bitwarden-secrets` for:
 - Flower basic auth
 - DataCite credentials when DataCite is enabled
 
+It can also create a default admin user and a default machine user from that same secret if
+these keys are present:
+
+- `DEFAULT_ADMIN_EMAIL`
+- `DEFAULT_ADMIN_PASSWORD`
+- `DEFAULT_MACHINE_EMAIL`
+- `DEFAULT_MACHINE_PASSWORD`
+
+The install init job will create those users and add the `admin` role on first
+install.
+
 ## Reset And Recreate
 
 For test or non-production environments, the repository includes
@@ -107,6 +118,9 @@ invenio users create <admin-email> --password=<admin-password> --active
 invenio roles add <admin-email> admin
 exit
 ```
+
+If `DEFAULT_ADMIN_EMAIL` and `DEFAULT_ADMIN_PASSWORD` are present in the
+existing secret, this manual step is no longer needed for first install.
 
 ## Data Restore And Updates
 

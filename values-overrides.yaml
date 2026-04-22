@@ -15,6 +15,9 @@ invenio:
   init: true
   upgradeInit: true
   demo_data: false
+  defaultUsers:
+    enabled: true
+    existingSecret: "invenio-bitwarden-secrets"
   extraConfig:
     INVENIO_APP_ALLOWED_HOSTS: '["{{ .Values.invenio.hostname }}", "invenio-web", "invenio-web.{{ .Release.Namespace }}.svc.cluster.local"]'
     INVENIO_TRUSTED_HOSTS: '["{{ .Values.invenio.hostname }}", "invenio-web", "invenio-web.{{ .Release.Namespace }}.svc.cluster.local"]'
@@ -34,6 +37,12 @@ invenio:
 opensearch:
   enabled: true
   fullnameOverride: "invenio-opensearch"
+  extraConfig:
+    node:
+      store:
+        allow_mmap: false
+  sysctlImage:
+    enabled: false
 
 rabbitmq:
   enabled: true

@@ -110,6 +110,21 @@ invenio:
   ## @param invenio.default_users
   ## Requires invenio.init=true
   default_users: []
+  ## @param invenio.defaultUsers.enabled Enable default admin/machine users from an existing secret
+  ## @param invenio.defaultUsers.existingSecret Existing secret containing default user credentials
+  ## @param invenio.defaultUsers.secretKeys.adminEmailKey Secret key for the default admin email
+  ## @param invenio.defaultUsers.secretKeys.adminPasswordKey Secret key for the default admin password
+  ## @param invenio.defaultUsers.secretKeys.machineEmailKey Secret key for the default machine user email
+  ## @param invenio.defaultUsers.secretKeys.machinePasswordKey Secret key for the default machine user password
+  ## When enabled, the install init job will create these users if the keys are present in the secret
+  defaultUsers:
+    enabled: false
+    existingSecret: ""
+    secretKeys:
+      adminEmailKey: "DEFAULT_ADMIN_EMAIL"
+      adminPasswordKey: "DEFAULT_ADMIN_PASSWORD"
+      machineEmailKey: "DEFAULT_MACHINE_EMAIL"
+      machinePasswordKey: "DEFAULT_MACHINE_PASSWORD"
   ## @param invenio.demo_data
   ## Setting invenio.demo_data=true requires also setting default_users!
   demo_data: false
