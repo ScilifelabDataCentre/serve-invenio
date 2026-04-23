@@ -14,6 +14,10 @@ metadata:
 {{ $cmd := `
 set -e
 
+invenio roles create admin || true
+invenio access allow superuser-access role admin || true
+invenio access allow administration-access role admin || true
+
 ensure_user() {
   local email="$1"
   local password="$2"

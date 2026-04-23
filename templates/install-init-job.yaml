@@ -21,6 +21,7 @@ invenio index queue init purge
 invenio files location --default 'default-location' $(invenio shell --no-term-title -c "print(app.instance_path)")'/data'
 invenio roles create admin || true
 invenio access allow superuser-access role admin || true
+invenio access allow administration-access role admin || true
 invenio rdm-records fixtures
 ` -}}
 {{- range $usr, $pass := .Values.invenio.default_users -}}
