@@ -65,6 +65,14 @@ spec:
         {{- if .Values.web.resources }}
         resources: {{- toYaml .Values.web.resources | nindent 10 }}
         {{- end }}
+        securityContext:
+          {{- with .Values.web.securityContext }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+      securityContext:
+        {{- with .Values.web.podSecurityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       restartPolicy: OnFailure
       {{- if .Values.invenio.vocabularies }}
       volumes:
