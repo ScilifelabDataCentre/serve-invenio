@@ -6,12 +6,13 @@ deploy Invenio with Argo CD.
 The deployment is based on upstream `helm-invenio`, with a small set of Serve
 overrides layered on top in [values-overrides.yaml](/Users/hamim160/Documents/GitHub/ScilifelabDataCentre/serve-invenio/values-overrides.yaml).
 
-## Default Deployment Shape
+## Default Deployment
 
-- namespace: `invenio`
-- release name: `invenio`
-- hostname: `invenio-dev.serve-dev.scilifelab.se`
-- image: `ghcr.io/scilifelabdatacentre/serve-inveniordm:260128-1120`
+- chart defaults shared across environments live in
+  [values-overrides.yaml](values-overrides.yaml)
+- environment-specific values (hostname, image registry/repository/tag,
+  DataCite DOI prefix, storage class and size, cert-manager cluster issuer,
+  TLS secret name, namespace) are set on the Argo CD Application
 - OpenSearch: internal chart dependency
 - RabbitMQ: internal chart dependency
 - PostgreSQL: internal chart dependency
@@ -29,17 +30,14 @@ overrides layered on top in [values-overrides.yaml](/Users/hamim160/Documents/Gi
 ## What This Repo Does Not Own
 
 - Bitwarden sync
-- namespace bootstrap
-- secret creation or secret copying between namespaces
-- one-off migration steps such as data restore or operational backfills
 
-Those concerns should be handled outside this repository.
+This should be handled outside this repository.
 
 ## Deployment
 
 Argo CD should deploy this chart with [values-overrides.yaml](/Users/hamim160/Documents/GitHub/ScilifelabDataCentre/serve-invenio/values-overrides.yaml).
 
-For first-time bootstrap, temporarily enable:
+For first-time deployment, temporarily enable:
 
 ```yaml
 invenio:
@@ -47,10 +45,7 @@ invenio:
 ```
 
 After the initial install job has completed successfully, set `invenio.init`
-back to `false`. This is important with Argo CD because Helm hooks are mapped
-to Argo sync hooks, and Argo does not distinguish cleanly between "install" and
-"upgrade" operations for hook execution.
-
+back to `false`.
 If you want to render or test the chart locally:
 
 ```bash
@@ -150,7 +145,7 @@ existing secret, this manual step is no longer needed for first install.
 ## Data Restore And Updates
 
 For real data migration or refreshes, restore the PostgreSQL data, files, and
-other state through your normal operational process. Do not use
+other state. Do not use
 `wipe_recreate.sh` for that, because it intentionally resets the instance and
 loads only base fixtures.
 
@@ -161,5 +156,5 @@ DataCite is intentionally disabled by default:
 - `invenio.datacite.enabled: false`
 
 That keeps the default deployment behavior aligned with the Serve expectation
-that records can flow into Invenio without minting DataCite DOIs unless testing
-explicitly enables it.
+that records can flow into Invenio without minting DataCite DOIs unless
+explicitly enabled.
