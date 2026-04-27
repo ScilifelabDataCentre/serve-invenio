@@ -510,15 +510,9 @@ Add datacite environmental variables
 - name: INVENIO_DATACITE_DATACENTER_SYMBOL
   value: {{ . }}
 {{- end}}
-{{- with .Values.invenio.datacite.landingPageUrl }}
-  {{- if .template }}
-- name: DATACITE_LANDING_PAGE_URL_TEMPLATE
-  value: {{ .template | quote }}
-  {{- end }}
-  {{- if .parentTemplate }}
-- name: DATACITE_LANDING_PAGE_URL_TEMPLATE_PARENT
-  value: {{ .parentTemplate | quote }}
-  {{- end }}
+{{- with .Values.invenio.datacite.landingPageBaseUrl }}
+- name: DATACITE_LANDING_PAGE_BASE_URL
+  value: {{ tpl . $ | quote }}
 {{- end }}
 {{- end }}
 {{- end -}}

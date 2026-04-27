@@ -29,9 +29,10 @@ invenio:
       passwordKey: "DATACITE_PASSWORD"
     testMode: "true"
     format: "{prefix}/SCILIFELAB.{id}"
-    landingPageUrl:
-      template: "https://{{ .Values.invenio.hostname }}/records/{app_code}/{id}"
-      parentTemplate: "https://{{ .Values.invenio.hostname }}/records/{app_code}"
+    # Public-facing base URL for DOI landing pages. Path components
+    # (/records/<id> or /records/<app_code>) are added in code by the
+    # custom DataCite provider in serve-inveniordm.
+    landingPageBaseUrl: "https://serve-dev.scilifelab.se"
 
 opensearch:
   enabled: true
