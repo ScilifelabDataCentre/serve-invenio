@@ -30,8 +30,9 @@ overrides layered on top in [values-overrides.yaml](/Users/hamim160/Documents/Gi
 ## What This Repo Does Not Own
 
 - Bitwarden sync
+- NetworkPolicies for cross-namespace access to Invenio (owned by `serve-charts`)
 
-This should be handled outside this repository.
+These should be handled outside this repository.
 
 ## Deployment
 

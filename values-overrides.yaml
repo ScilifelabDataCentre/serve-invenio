@@ -6,6 +6,10 @@ global:
 image:
   pullPolicy: IfNotPresent
 
+serve:
+  namespace: "serve-dev"
+  podLabel: "studio-app"
+
 invenio:
   existingSecret: "invenio-bitwarden-secrets"
   init: false
