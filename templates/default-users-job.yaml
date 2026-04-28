@@ -14,9 +14,34 @@ metadata:
 {{ $cmd := `
 set -e
 
-invenio roles create admin || true
-invenio access allow superuser-access role admin || true
-invenio access allow administration-access role admin || true
+run_or_existing() {
+  local description="$1"
+  shift
+  local output
+  local status
+
+  set +e
+  output="$("$@" 2>&1)"
+  status=$?
+  set -e
+
+  if [[ "$status" -eq 0 ]]; then
+    [[ -n "$output" ]] && printf '%s\n' "$output"
+    return 0
+  fi
+
+  if printf '%s\n' "$output" | grep -Eiq 'already exists|already has|already assigned|duplicate'; then
+    echo "$description already exists; continuing"
+    return 0
+  fi
+
+  printf '%s\n' "$output" >&2
+  return "$status"
+}
+
+run_or_existing "Admin role" invenio roles create admin
+run_or_existing "Superuser access grant" invenio access allow superuser-access role admin
+run_or_existing "Administration access grant" invenio access allow administration-access role admin
 
 ensure_user() {
   local email="$1"
@@ -26,17 +51,8 @@ ensure_user() {
     return 0
   fi
 
-  if invenio users create "$email" --password="$password" --active --confirm; then
-    :
-  else
-    echo "Default user $email already exists or could not be created automatically; continuing"
-  fi
-
-  if invenio roles add "$email" admin; then
-    :
-  else
-    echo "Default user $email already has admin role or role assignment could not be changed automatically; continuing"
-  fi
+  run_or_existing "Default user $email" invenio users create "$email" --password="$password" --active --confirm
+  run_or_existing "Admin role assignment for $email" invenio roles add "$email" admin
 }
 
 ensure_user "${DEFAULT_ADMIN_EMAIL:-}" "${DEFAULT_ADMIN_PASSWORD:-}"
