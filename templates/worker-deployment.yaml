@@ -2,28 +2,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  {{- with .Values.worker.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: {{ include "invenio.fullname" . }}-worker
   labels:
     {{- include "invenio.labels" . | nindent 4 }}
     app.kubernetes.io/component: worker
+    {{- with .Values.worker.deployment.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
-  {{- with .Values.worker.deploymentSpec.minReadySeconds }}
+  {{- with .Values.worker.deployment.spec.minReadySeconds }}
   minReadySeconds: {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.worker.deploymentSpec.paused }}
+  {{- with .Values.worker.deployment.spec.paused }}
   paused: {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.worker.deploymentSpec.progressDeadlineSeconds }}
+  {{- with .Values.worker.deployment.spec.progressDeadlineSeconds }}
   progressDeadlineSeconds: {{- toYaml . | nindent 4 }}
   {{- end }}
   replicas: {{ .Values.worker.replicas }}
-  {{- with .Values.worker.deploymentSpec.revisionHistoryLimit }}
+  {{- with .Values.worker.deployment.spec.revisionHistoryLimit }}
   revisionHistoryLimit: {{- toYaml . | nindent 4 }}
   {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/component: worker
-  {{- with .Values.worker.deploymentSpec.strategy }}
+  {{- with .Values.worker.deployment.spec.strategy }}
   strategy: {{- toYaml . | nindent 4 }}
   {{- end }}
   template:
@@ -120,6 +127,12 @@ spec:
               mountPath: "/opt/invenio/var/instance/app_data/vocabularies/{{ $key }}"
               subPath: "{{ $key }}"
             {{- end }}
+            {{- with .Values.invenio.extraVolumeMounts }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+            {{- with .Values.worker.extraVolumeMounts }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
         {{- if .Values.kerberos.enabled }}
         - name: kerberos-credentials
           image: {{ required "Missing .Values.kerberos.image" .Values.kerberos.image }}
@@ -171,6 +184,12 @@ spec:
         - name: vocabularies
           configMap:
             name: "{{ include "invenio.fullname" . }}-vocabularies"
+        {{- end }}
+        {{- with .Values.invenio.extraVolumes }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+        {{- with .Values.worker.extraVolumes }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
         {{- end }}
       {{- if .Values.worker.imagePullSecret }}
       imagePullSecrets:

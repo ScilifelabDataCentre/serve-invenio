@@ -10,8 +10,25 @@ metadata:
   annotations:
     "helm.sh/hook": post-install
     "helm.sh/hook-weight": "1"
-{{/*    "helm.sh/hook-delete-policy": hook-succeeded*/}}
-{{- $cmd := "invenio db init && invenio db create && invenio index init && invenio index queue init purge && invenio files location --default 'default-location'  $(invenio shell --no-term-title -c \"print(app.instance_path)\")'/data' && invenio roles create admin && invenio access allow superuser-access role admin" -}}
+    "helm.sh/hook-delete-policy": before-hook-creation
+{{ $cmd := `
+set -e
+
+invenio db init
+invenio db create
+invenio files location create --default 'default-location' $(invenio shell --no-term-title -c "print(app.instance_path)")'/data' || true
+invenio roles create admin || true
+invenio access allow superuser-access role admin || true
+invenio roles create administration || true
+invenio access allow administration-access role administration || true
+invenio roles create administration-moderation || true
+invenio access allow administration-moderation role administration-moderation || true
+invenio index init || true
+invenio index queue init purge
+invenio rdm-records custom-fields init
+invenio communities custom-fields init
+invenio rdm-records fixtures
+` -}}
 {{- range $usr, $pass := .Values.invenio.default_users -}}
   {{- $cmd = printf "%s && invenio users create --active --password=%s %s" $cmd $pass $usr -}}
 {{- end -}}
@@ -53,6 +70,14 @@ spec:
         {{- include "invenio.config.sentry" . | nindent 8 }}
         {{- if .Values.web.resources }}
         resources: {{- toYaml .Values.web.resources | nindent 10 }}
+        {{- end }}
+        securityContext:
+          {{- with .Values.web.securityContext }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+      securityContext:
+        {{- with .Values.web.podSecurityContext }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
       restartPolicy: OnFailure
       {{- if .Values.invenio.vocabularies }}

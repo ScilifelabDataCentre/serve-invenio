@@ -1,0 +1,22 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "invenio.fullname" . }}-web-allow-from-serve
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: web
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.serve.namespace }}
+          podSelector:
+            matchLabels:
+              app: {{ .Values.serve.podLabel }}

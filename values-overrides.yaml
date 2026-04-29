@@ -1,66 +1,68 @@
-# values-overrides.yaml
+fullnameOverride: "invenio"
+
 global:
-  existingSecret: "invenio-cluster-secrets"
   timezone: "Europe/Stockholm"
-  bitwarden:
-    enabled: false
-    secretName: "invenio-bitwarden-secrets"
+
+image:
+  pullPolicy: IfNotPresent
+
+serve:
+  namespace: "serve-dev"
+  podLabel: "studio-app"
 
 invenio:
-  hostname: "invenio-dev.serve-dev.scilifelab.se"
-  serviceName: "serve-invenio-dev-web.invenio-dev.svc.cluster.local"
-  existingSecret: "{{ .Values.global.existingSecret }}"
+  existingSecret: "invenio-bitwarden-secrets"
+  init: false
+  upgradeInit: false
+  demo_data: false
+  defaultUsers:
+    enabled: true
+    existingSecret: "invenio-bitwarden-secrets"
+  extraConfig:
+    INVENIO_APP_ALLOWED_HOSTS: '["{{ .Values.invenio.hostname }}", "invenio-web", "invenio-web.{{ .Release.Namespace }}.svc.cluster.local"]'
+    INVENIO_TRUSTED_HOSTS: '["{{ .Values.invenio.hostname }}", "invenio-web", "invenio-web.{{ .Release.Namespace }}.svc.cluster.local"]'
   datacite:
     enabled: false
     existingSecret: "invenio-bitwarden-secrets"
     secretKeys:
       usernameKey: "DATACITE_USERNAME"
       passwordKey: "DATACITE_PASSWORD"
-    prefix: "10.83812"
-    testMode: true
+    testMode: "true"
     format: "{prefix}/SCILIFELAB.{id}"
-    landingPageUrl:
-      template: "https://serve-dev.scilifelab.se/records/{app_code}/{id}"
-      parentTemplate: "https://serve-dev.scilifelab.se/records/{app_code}"
+    # Public-facing base URL for DOI landing pages. Path components
+    # (/records/<id> or /records/<app_code>) are added in code by the
+    # custom DataCite provider in serve-inveniordm.
+    landingPageBaseUrl: "https://serve-dev.scilifelab.se"
 
-image:
-  registry: docker.io
-  repository: mahbub1969/serve-inveniordm
-  tag: "v2"
-  pullPolicy: IfNotPresent
-
-# Disable built-in OpenSearch and use external configuration
 opensearch:
-  enabled: false
+  enabled: true
+  fullnameOverride: "invenio-opensearch"
+  extraConfig:
+    node:
+      store:
+        allow_mmap: false
+  sysctlImage:
+    enabled: false
 
-# Configure external OpenSearch
-opensearchExternal:
-  hostname: "opensearch"
-  port: 9200
-
-# Disable built-in RabbitMQ and use external
 rabbitmq:
-  enabled: false
+  enabled: true
+  fullnameOverride: "invenio-rabbitmq"
+  auth:
+    username: "user"
+    existingPasswordSecret: "invenio-bitwarden-secrets"
+    existingSecretPasswordKey: "rabbitmq-password"
+    existingErlangSecret: "invenio-bitwarden-secrets"
+    existingSecretErlangKey: "rabbitmq-erlang-cookie"
 
-# Configure external RabbitMQ
-rabbitmqExternal:
-  hostname: "rabbitmq"
-  amqpPort: 5672
-  managementPort: 15672
-  username: "user"
-  existingSecret: "{{ .Values.global.existingSecret }}"
-  existingSecretPasswordKey: "rabbitmq-password"
-  protocol: "amqp"
-  vhost: "/"
-
-# PostgreSQL configuration
 postgresql:
   enabled: true
+  fullnameOverride: "invenio-postgresql"
   auth:
     username: "invenio"
-    existingSecret: "{{ .Values.global.existingSecret }}"
-    existingSecretPasswordKey: "postgres-password"
     database: "invenio"
+    existingSecret: "invenio-bitwarden-secrets"
+    secretKeys:
+      userPasswordKey: "postgres-password"
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 1001
@@ -77,63 +79,41 @@ postgresql:
     seccompProfile:
       type: "RuntimeDefault"
 
-# Flower configuration
 flower:
   enabled: true
-  image: "mher/flower:2.0"
-  secret_name:  "invenio-cluster-secrets" #"{{ .Values.global.existingSecret }}"
   existing_secret: true
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
-    seccompProfile:
-      type: "RuntimeDefault"
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-        - ALL
-    seccompProfile:
-      type: "RuntimeDefault"
+  secret_name: "invenio-bitwarden-secrets"
 
-# Web configuration with adjusted probes
 web:
   replicas: 1
-  resources: 
+  resources:
     requests:
       cpu: 500m
       memory: 1Gi
     limits:
       cpu: 1000m
       memory: 2Gi
-  # Adjust startup probe to be more lenient
   startupProbe:
     exec:
       command:
         - /bin/bash
         - -c
-        - "uwsgi_curl -X HEAD -H 'Host: {{ .Values.invenio.hostname }}' $(hostname):5000 /ping"
+        - "uwsgi_curl -X HEAD -H 'Host: {{ include \"invenio.hostname\" $ }}' $(hostname):5000 /ping"
     initialDelaySeconds: 60
     timeoutSeconds: 10
     periodSeconds: 10
     failureThreshold: 10
-  # Adjust readiness probe
   readinessProbe:
     exec:
       command:
         - /bin/bash
         - -c
-        - "uwsgi_curl -X HEAD -H 'Host: {{ .Values.invenio.hostname }}' $(hostname):5000 /ping"
+        - "uwsgi_curl -X HEAD -H 'Host: {{ include \"invenio.hostname\" $ }}' $(hostname):5000 /ping"
     initialDelaySeconds: 30
     timeoutSeconds: 5
     periodSeconds: 10
     failureThreshold: 3
 
-# Worker configuration - with adjusted probes
 worker:
   replicas: 1
   concurrency: 2
@@ -144,51 +124,43 @@ worker:
     limits:
       cpu: 1000m
       memory: 2Gi
-  # Adjust liveness probe to be more lenient
   livenessProbe:
     exec:
       command:
         - /bin/bash
         - -c
         - "celery -A invenio_app.celery inspect ping -d celery@$(hostname)"
-    initialDelaySeconds: 120  # Wait longer for RabbitMQ to be ready
+    initialDelaySeconds: 120
     timeoutSeconds: 30
     periodSeconds: 30
     failureThreshold: 5
 
 workerBeat:
-  # Adjust liveness probe for worker-beat
+  schedulerClass: "invenio_jobs.services.scheduler:RunScheduler"
   livenessProbe:
     exec:
       command:
         - /bin/bash
         - -c
         - "celery -A invenio_app.celery inspect ping"
-    initialDelaySeconds: 120  # Wait longer for RabbitMQ to be ready
+    initialDelaySeconds: 120
     timeoutSeconds: 30
     periodSeconds: 30
     failureThreshold: 5
 
-# Persistence configuration
 persistence:
   enabled: true
   access_mode: ReadWriteMany
-  size: 10Gi
-  storage_class: "ontap-nas"
 
-# Ingress configuration
 ingress:
   enabled: true
   class: "nginx"
   annotations:
     kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  tlsSecretNameOverride: "invenio-tls"
 
-
-# Redis configuration
 redis:
   enabled: true
+  fullnameOverride: "invenio-redis"
   auth:
     enabled: false
   podSecurityContext:

@@ -1,0 +1,132 @@
+{{- if and .Values.invenio.defaultUsers.enabled .Values.invenio.defaultUsers.existingSecret }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "invenio.fullname" . }}-default-users
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+    app: default-users
+    module: users
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+{{ $cmd := `
+set -e
+
+run_or_existing() {
+  local description="$1"
+  shift
+  local output
+  local status
+
+  set +e
+  output="$("$@" 2>&1)"
+  status=$?
+  set -e
+
+  if [[ "$status" -eq 0 ]]; then
+    [[ -n "$output" ]] && printf '%s\n' "$output"
+    return 0
+  fi
+
+  if printf '%s\n' "$output" | grep -Eiq 'already exists|already has|already assigned|duplicate'; then
+    echo "$description already exists; continuing"
+    return 0
+  fi
+
+  printf '%s\n' "$output" >&2
+  return "$status"
+}
+
+run_or_existing "Admin role" invenio roles create admin
+run_or_existing "Superuser access grant" invenio access allow superuser-access role admin
+run_or_existing "Administration access grant" invenio access allow administration-access role admin
+
+ensure_user() {
+  local email="$1"
+  local password="$2"
+
+  if [[ -z "$email" || -z "$password" ]]; then
+    return 0
+  fi
+
+  run_or_existing "Default user $email" invenio users create "$email" --password="$password" --active --confirm
+  run_or_existing "Admin role assignment for $email" invenio roles add "$email" admin
+}
+
+ensure_user "${DEFAULT_ADMIN_EMAIL:-}" "${DEFAULT_ADMIN_PASSWORD:-}"
+ensure_user "${DEFAULT_MACHINE_EMAIL:-}" "${DEFAULT_MACHINE_PASSWORD:-}"
+` -}}
+spec:
+  template:
+    spec:
+      containers:
+      - name: default-users
+        image: {{ default .Values.web.image (include "invenio.image" .) }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        command:
+          - /bin/bash
+          - -c
+          - {{ $cmd | quote }}
+        envFrom:
+        - configMapRef:
+            name: {{ include "invenio.fullname" . }}-config
+        - secretRef:
+            name: {{ include "invenio.secretName" . }}
+        - secretRef:
+            name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+        env:
+        - name: TZ
+          value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
+        - name: DEFAULT_ADMIN_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+              key: {{ .Values.invenio.defaultUsers.secretKeys.adminEmailKey }}
+              optional: true
+        - name: DEFAULT_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+              key: {{ .Values.invenio.defaultUsers.secretKeys.adminPasswordKey }}
+              optional: true
+        - name: DEFAULT_MACHINE_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+              key: {{ .Values.invenio.defaultUsers.secretKeys.machineEmailKey }}
+              optional: true
+        - name: DEFAULT_MACHINE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl .Values.invenio.defaultUsers.existingSecret . }}
+              key: {{ .Values.invenio.defaultUsers.secretKeys.machinePasswordKey }}
+              optional: true
+        {{- include "invenio.config.queue" . | nindent 8 }}
+        {{- include "invenio.config.database" . | nindent 8 }}
+        {{- with .Values.invenio.extraEnvVars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "invenio.config.sentry" . | nindent 8 }}
+        {{- if .Values.web.resources }}
+        resources: {{- toYaml .Values.web.resources | nindent 10 }}
+        {{- end }}
+        securityContext:
+          {{- with .Values.web.securityContext }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+      securityContext:
+        {{- with .Values.web.podSecurityContext }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      restartPolicy: OnFailure
+      {{- if .Values.web.imagePullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.web.imagePullSecret }}
+      {{- end }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

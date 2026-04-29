@@ -1,29 +1,40 @@
 ---
+{{- $schedulerArg := "" -}}
+{{- with .Values.workerBeat.schedulerClass }}
+  {{- $schedulerArg = printf " --scheduler %s" (tpl . $) -}}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  {{- with .Values.workerBeat.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: {{ include "invenio.fullname" . }}-worker-beat
   labels:
     {{- include "invenio.labels" . | nindent 4 }}
     app.kubernetes.io/component: worker-beat
+    {{- with .Values.workerBeat.deployment.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
-  {{- with .Values.workerBeat.deploymentSpec.minReadySeconds }}
+  {{- with .Values.workerBeat.deployment.spec.minReadySeconds }}
   minReadySeconds: {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.workerBeat.deploymentSpec.paused }}
+  {{- with .Values.workerBeat.deployment.spec.paused }}
   paused: {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.workerBeat.deploymentSpec.progressDeadlineSeconds }}
+  {{- with .Values.workerBeat.deployment.spec.progressDeadlineSeconds }}
   progressDeadlineSeconds: {{- toYaml . | nindent 4 }}
   {{- end }}
   replicas: 1 # For data safety, beat must never have more than 1 replica!
-  {{- with .Values.workerBeat.deploymentSpec.revisionHistoryLimit }}
+  {{- with .Values.workerBeat.deployment.spec.revisionHistoryLimit }}
   revisionHistoryLimit: {{- toYaml . | nindent 4 }}
   {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/component: worker-beat
-  {{- with .Values.workerBeat.deploymentSpec.strategy }}
+  {{- with .Values.workerBeat.deployment.spec.strategy }}
   strategy: {{- toYaml . | nindent 4 }}
   {{- end }}
   template:
@@ -55,7 +66,7 @@ spec:
         command: [
           "/bin/bash",
           "-c",
-          "celery -A {{ .Values.worker.app }} beat -l {{ .Values.worker.log_level }} -s {{ .Values.worker.celery_schedule }} --pidfile {{ .Values.worker.celery_pidfile }}"
+          {{ printf "celery -A %s beat -l %s -s %s --pidfile %s%s" .Values.worker.app .Values.worker.log_level .Values.worker.celery_schedule .Values.worker.celery_pidfile $schedulerArg | quote }}
         ]
         securityContext:
           {{- with .Values.workerBeat.securityContext }}
@@ -72,6 +83,12 @@ spec:
         - name: vocabularies
           mountPath: "/opt/invenio/var/instance/app_data/vocabularies/{{ $key }}"
           subPath: "{{ $key }}"
+        {{- end }}
+        {{- with .Values.invenio.extraVolumeMounts }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+        {{- with .Values.workerBeat.extraVolumeMounts }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
         {{- end }}
         envFrom:
         - configMapRef:
@@ -125,6 +142,12 @@ spec:
       - name: vocabularies
         configMap:
           name: "{{ include "invenio.fullname" . }}-vocabularies"
+      {{- end }}
+      {{- with .Values.invenio.extraVolumes }}
+      {{- tpl (toYaml .) $ | nindent 6 }}
+      {{- end }}
+      {{- with .Values.workerBeat.extraVolumes }}
+      {{- tpl (toYaml .) $ | nindent 6 }}
       {{- end }}
       {{- if .Values.worker.imagePullSecret }}
       imagePullSecrets:

@@ -25,6 +25,8 @@ templates/*.yaml
 # Generated secrets
 *-secrets.yaml
 *-secret.yaml
+!templates/*-secrets.yaml
+!templates/*-secret.yaml
 
 # Kustomize files
 kustomization.yaml
@@ -122,6 +124,7 @@ crash.log
 
 # Secrets - NEVER COMMIT THESE!
 *-secrets.yaml
+!templates/*-secrets.yaml
 secrets.yaml
 values-secret.yaml
 *-passwords.yaml
