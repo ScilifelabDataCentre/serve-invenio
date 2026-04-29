@@ -241,6 +241,8 @@ Return the proper Invenio image name
   value: {{ include "invenio.rabbitmq.hostname" . }}
 - name: INVENIO_AMQP_BROKER_PORT
   value: {{ include "invenio.rabbitmq.amqpPortString" . }}
+- name: INVENIO_AMQP_BROKER_MANAGEMENT_PORT
+  value: {{ include "invenio.rabbitmq.managementPortString" . }}
 - name: INVENIO_AMQP_BROKER_VHOST
   value: {{ include "invenio.rabbitmq.vhost" . }}
 - name: INVENIO_AMQP_BROKER_PROTOCOL
@@ -259,7 +261,7 @@ Return the proper Invenio image name
 - name: INVENIO_CELERY_BROKER_URL
   value: $(INVENIO_BROKER_URL)
 - name: RABBITMQ_API_URI
-  value: "http://$(INVENIO_AMQP_BROKER_USER):$(INVENIO_AMQP_BROKER_PASSWORD)@$(INVENIO_AMQP_BROKER_HOST):$(INVENIO_AMQP_BROKER_PORT)/api/"
+  value: "http://$(INVENIO_AMQP_BROKER_USER):$(INVENIO_AMQP_BROKER_PASSWORD)@$(INVENIO_AMQP_BROKER_HOST):$(INVENIO_AMQP_BROKER_MANAGEMENT_PORT)/api/"
 {{- end -}}
 
 #########################     OpenSearch hostname     #########################
@@ -419,8 +421,8 @@ Invenio basic configuration variables
 */}}
 {{- define "invenio.configBase" -}}
 INVENIO_ACCOUNTS_SESSION_REDIS_URL: 'redis://{{ include "invenio.redis.hostname" . }}:6379/1'
-INVENIO_APP_ALLOWED_HOSTS: '["{{ include "invenio.hostname" $ }}"]'
-INVENIO_TRUSTED_HOSTS: '["{{ include "invenio.hostname" $ }}"]'
+INVENIO_APP_ALLOWED_HOSTS: '["{{ include "invenio.hostname" $ }}", "{{ .Values.invenio.serviceName }}"]'
+INVENIO_TRUSTED_HOSTS: '["{{ include "invenio.hostname" $ }}", "{{ .Values.invenio.serviceName }}"]'
 INVENIO_CACHE_REDIS_HOST: '{{ include "invenio.redis.hostname" . }}'
 INVENIO_CACHE_REDIS_URL: 'redis://{{ include "invenio.redis.hostname" . }}:6379/0'
 INVENIO_CELERY_RESULT_BACKEND: 'redis://{{ include "invenio.redis.hostname" . }}:6379/2'
@@ -510,15 +512,9 @@ Add datacite environmental variables
 - name: INVENIO_DATACITE_DATACENTER_SYMBOL
   value: {{ . }}
 {{- end}}
-{{- with .Values.invenio.datacite.landingPageUrl }}
-  {{- if .template }}
-- name: DATACITE_LANDING_PAGE_URL_TEMPLATE
-  value: {{ .template | quote }}
-  {{- end }}
-  {{- if .parentTemplate }}
-- name: DATACITE_LANDING_PAGE_URL_TEMPLATE_PARENT
-  value: {{ .parentTemplate | quote }}
-  {{- end }}
+{{- with .Values.invenio.datacite.landingPageBaseUrl }}
+- name: DATACITE_LANDING_PAGE_BASE_URL
+  value: {{ tpl . $ | quote }}
 {{- end }}
 {{- end }}
 {{- end -}}
